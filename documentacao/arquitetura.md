@@ -5,7 +5,7 @@ O repositorio e um monorepo com modulos independentes e scripts compartilhados n
 ## Modulos
 
 - `testes-api`: projeto Maven para automacao de API.
-- `testes-web-e2e`: projeto Node.js para automacao com Cypress.
+- `testes-web-e2e`: projeto Node.js para automacao Web E2E com Cypress, Cucumber, Page Objects, fabricas e Allure.
 - `testes-mobile`: projeto Maven para automacao com Appium.
 - `testes-performance`: recursos e relatorios do k6.
 - `scripts`: diagnostico, bootstrap e wrappers de execucao entre modulos.
