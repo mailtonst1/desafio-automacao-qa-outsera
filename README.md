@@ -2,7 +2,7 @@
 
 Monorepo que organiza a automacao de testes de API, Web E2E, Mobile e Performance.
 
-O módulo de API está implementado com REST Assured, JUnit 5, Allure e ServeRest local. Web E2E, Mobile e Performance permanecem em fase de fundação.
+Os módulos de API e Web E2E estão implementados. Mobile e Performance permanecem em fase de fundação.
 
 ## Objetivo e escopo
 
@@ -11,7 +11,7 @@ O objetivo e fornecer uma estrutura versionada, reproduzivel e preparada para a 
 Modulos planejados:
 
 - `testes-api`: Java, Maven Wrapper, REST Assured, JUnit 5, Jackson, JSON Schema Validator, Allure e ServeRest local. Consulte o [README do módulo](testes-api/README.md).
-- `testes-web-e2e`: Cypress, TypeScript, Cucumber/Gherkin, Page Object Pattern, Allure e Automation Exercise.
+- `testes-web-e2e`: Cypress, TypeScript, Cucumber/Gherkin, Page Object Pattern, Data Factory, Allure e Automation Exercise. Consulte o [README do módulo](testes-web-e2e/README.md).
 - `testes-mobile`: Java, Maven, Appium, UiAutomator2, JUnit 5, Screen Object Pattern, Allure e Sauce Labs My Demo App Android.
 - `testes-performance`: k6, ServeRest local, cenario smoke e cenario de carga com 500 VUs.
 

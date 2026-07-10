@@ -13,6 +13,8 @@ relatorios/*
 !relatorios/.gitkeep
 !relatorios/*/
 !relatorios/*/.gitkeep
+relatorios/web/*
+!relatorios/web/.gitkeep
 **/allure-results/
 **/allure-report/
 **/cypress/videos/

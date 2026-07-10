@@ -12,6 +12,11 @@
 
 Em 10/07/2026, `npm audit` foi executado no modulo `testes-web-e2e` apos a criacao do `package-lock.json`. O resultado real foi de 12 vulnerabilidades transitivas: 1 baixa, 10 moderadas, 1 alta e nenhuma critica.
 
+## Web E2E
+
+- A Automation Exercise usa validacao HTML nativa nos campos obrigatorios de login e pagamento; os cenarios negativos verificam essa validacao sem depender de mensagem localizada do navegador.
+- O formulario de pagamento aceita o numero informado. Nao ha validacao real de cartao invalido, portanto esse cenario nao foi criado.
+
 | Pacote afetado | Severidade | Origem ou impacto reportado |
 | --- | --- | --- |
 | `@badeball/cypress-cucumber-preprocessor` | Moderada | Dependencias transitivas de Cucumber, Cypress e `uuid`. |
