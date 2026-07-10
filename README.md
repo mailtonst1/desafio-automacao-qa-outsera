@@ -1,70 +1,77 @@
-# Outsera QA Automation Challenge
+# Desafio de automacao de QA Outsera
 
-Foundation for a QA automation monorepo targeting API, Web E2E, Mobile, and Performance test suites.
+Monorepo que organiza a fundacao de automacao de testes de API, Web E2E, Mobile e Performance.
 
-This phase creates only the repository baseline: documentation, initial module configuration, diagnostic scripts, bootstrap scripts, and local service configuration. Functional test implementation will be added in later phases.
+Esta fase estabelece apenas a base do repositorio: documentacao, configuracoes iniciais dos modulos, scripts de diagnostico e bootstrap, alem da configuracao do servico local. Os testes funcionais serao implementados em fases posteriores.
 
-## Scope
+## Objetivo e escopo
 
-- `api-tests`: Java, Maven, REST Assured, JUnit 5, Allure, ServeRest local.
-- `web-e2e`: Cypress, TypeScript, Cucumber/Gherkin, Page Object Pattern, Allure, Automation Exercise.
-- `mobile-tests`: Java, Maven, Appium, UiAutomator2, JUnit 5, Screen Object Pattern, Allure, Sauce Labs My Demo App Android.
-- `performance-tests`: k6, ServeRest local, smoke scenario, load scenario with 500 VUs.
+O objetivo e fornecer uma estrutura versionada, reproduzivel e preparada para a evolucao da automacao de QA. O escopo atual e exclusivamente estrutural; nao ha testes funcionais completos de API, Web, Mobile ou Performance.
 
-## Applications
+Modulos planejados:
+
+- `testes-api`: Java, Maven, REST Assured, JUnit 5, Allure e ServeRest local.
+- `testes-web-e2e`: Cypress, TypeScript, Cucumber/Gherkin, Page Object Pattern, Allure e Automation Exercise.
+- `testes-mobile`: Java, Maven, Appium, UiAutomator2, JUnit 5, Screen Object Pattern, Allure e Sauce Labs My Demo App Android.
+- `testes-performance`: k6, ServeRest local, cenario smoke e cenario de carga com 500 VUs.
+
+## Tecnologias e aplicacoes
 
 - ServeRest local: `http://localhost:3000`
-- ServeRest container network URL: `http://serverest:3000`
-- ServeRest health endpoint: `http://localhost:3000/status`
+- URL de rede do container ServeRest: `http://serverest:3000`
+- Health check do ServeRest: `http://localhost:3000/status`
 - Automation Exercise: `https://automationexercise.com`
-- Sauce Labs My Demo App Android:
-  - Planned app version: `2.2.0`
-  - Repository: https://github.com/saucelabs/my-demo-app-android
-  - Releases: https://github.com/saucelabs/my-demo-app-android/releases
+- Sauce Labs My Demo App Android, versao planejada `2.2.0`:
+  - repositorio: https://github.com/saucelabs/my-demo-app-android
+  - releases: https://github.com/saucelabs/my-demo-app-android/releases
 
-The APK is not downloaded or versioned in this phase.
+O APK nao e baixado nem versionado nesta fase.
 
-## Folder Structure
+Versoes fixadas ficam em `versions.properties`. O projeto utiliza Java 17, Maven, Node.js, npm, TypeScript, Cypress, Appium e k6 conforme a disponibilidade de cada modulo.
+
+## Arquitetura e estrutura de pastas
+
+O repositorio adota um monorepo com modulos independentes e scripts compartilhados:
 
 ```text
 .github/workflows/
-api-tests/
-web-e2e/
-mobile-tests/
+testes-api/
+testes-web-e2e/
+testes-mobile/
   apps/
   config/devices/
   config/capabilities/
   scripts/
-performance-tests/
-  scenarios/
+testes-performance/
+  cenarios/
   config/
-  reports/
+  relatorios/
 scripts/
-docs/
-reports/
+documentacao/
+relatorios/
 ```
 
-## Docker
+Detalhes de arquitetura, decisoes, estrategia e matriz de testes estao em [documentacao](documentacao).
 
-Start ServeRest:
+## Pre-requisitos e instalacao
+
+Para o diagnostico completo, instale manualmente Git, Docker com Docker Compose, Java 17, Maven, Node.js com npm e, quando necessario, Android SDK, adb, emulador, Appium, UiAutomator2 e k6.
+
+O bootstrap instala somente dependencias do projeto e copia arquivos de exemplo para arquivos locais ignorados pelo Git. Ele nao instala silenciosamente Docker, Android Studio, Java ou Android SDK e nao altera variaveis de ambiente do sistema.
+
+Windows:
 
 ```powershell
-docker compose up -d serverest
+powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1
 ```
 
 Linux/macOS:
 
 ```sh
-docker compose up -d serverest
+./scripts/bootstrap.sh
 ```
 
-Validate configuration:
-
-```powershell
-docker compose config
-```
-
-## Local Diagnostics
+## Diagnostico do ambiente
 
 Windows:
 
@@ -79,27 +86,11 @@ chmod +x scripts/*.sh
 ./scripts/doctor.sh
 ```
 
-The doctor scripts are read-only. They check Git, Docker, Docker Compose, Java, Maven, Node, npm, Android SDK, adb, emulator, Appium, UiAutomator2, and k6.
+Os scripts de diagnostico sao somente leitura e verificam Git, Docker, Docker Compose, Java, Maven, Node, npm, Android SDK, adb, emulador, Appium, UiAutomator2 e k6.
 
-## Bootstrap
+## Execucao local
 
-Windows:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1
-```
-
-Linux/macOS:
-
-```sh
-./scripts/bootstrap.sh
-```
-
-Bootstrap installs only project dependencies and copies example files to local files ignored by Git. It does not silently install Docker, Android Studio, Java, or modify system environment variables.
-
-## Run Scripts
-
-Windows:
+Os scripts abaixo validam a prontidao do modulo e executam apenas comandos padrao quando existem arquivos implementados:
 
 ```powershell
 .\scripts\run-api.ps1
@@ -109,39 +100,116 @@ Windows:
 .\scripts\run-all.ps1
 ```
 
-Linux/macOS:
+No Linux/macOS, use os equivalentes `.sh` da pasta `scripts`.
 
-```sh
-./scripts/run-api.sh
-./scripts/run-web.sh
-./scripts/run-mobile.sh
-./scripts/run-performance.sh
-./scripts/run-all.sh
+Como os testes funcionais ainda nao foram implementados, os modulos permanecem em estado de fundacao.
+
+## Execucao com Docker
+
+Para iniciar o ServeRest:
+
+```powershell
+docker compose up -d serverest
 ```
 
-These scripts are intentionally conservative in this phase. They validate module readiness and call standard tool commands only when module files exist.
+Para validar a configuracao:
 
-## Data Strategy
+```powershell
+docker compose config
+```
 
-API and performance data will target ServeRest local. Later phases should isolate generated data per run and avoid relying on mutable shared state. Web and mobile flows should prefer deterministic setup and teardown through API helpers where possible.
+O Compose utiliza a imagem fixada `paulogoncalvesbh/serverest:3.2.0` e expoe a porta 3000.
 
-## Reports
+## Dados, relatorios e CI/CD
 
-Reports will be written under `reports/` and module-specific report folders. Allure result folders are ignored by Git.
+API e Performance usarao o ServeRest local. As fases futuras devem isolar dados gerados por execucao e evitar estado compartilhado mutavel. Os fluxos Web e Mobile devem preferir preparacao e limpeza deterministicas por meio de helpers de API quando possivel.
 
-## CI/CD Plan
+Allure sera o formato padrao para API, Web e Mobile. Resumos do k6 serao armazenados em `testes-performance/relatorios/`; relatorios gerados ficam em `relatorios/` e sao ignorados pelo Git.
 
-CI/CD is documented but not implemented in this phase. Future workflow design should run API, Web, and Performance through Docker-friendly jobs and Mobile through a configured Android emulator on GitHub Actions.
+CI/CD esta documentado, mas nao implementado nesta fase. O desenho futuro deve executar API, Web e Performance em jobs compatíveis com Docker e Mobile em um emulador Android configurado no GitHub Actions.
 
-## Mobile Limitations
+## Aplicacoes e limitacoes
 
-Mobile execution requires Android SDK, platform tools, emulator, Appium, UiAutomator2 driver, and a local APK path. Physical-device execution will require `UDID`, USB debugging, and compatible platform versions.
+A execucao Mobile exige Android SDK, platform tools, emulador, Appium, driver UiAutomator2 e um caminho local para o APK. Em dispositivo fisico, tambem serao necessarios `UDID`, depuracao USB e versoes de plataforma compativeis.
 
-## Secrets Policy
+As limitacoes conhecidas e os riscos estao em [limitacoes-conhecidas.md](documentacao/limitacoes-conhecidas.md). Os procedimentos de suporte estao em [solucao-de-problemas.md](documentacao/solucao-de-problemas.md).
 
-Do not commit real `.env` files, credentials, tokens, APKs, or generated reports. Use `.env.example` and module example files as templates.
+## Politica de segredos
 
-## Version Policy
+Nunca versione arquivos `.env` reais, credenciais, tokens, chaves, APKs ou relatorios gerados. Use `.env.example` e os arquivos de exemplo dos modulos como modelos. Nenhum segredo real faz parte desta fundacao.
 
-Pinned versions are recorded in `versions.properties`. Do not use `latest` tags.
+## Politica de versionamento
 
+As alteracoes devem ser pequenas, justificadas e validadas antes do commit. Nao use `latest` nas dependencias ou imagens. A estrategia de testes esta em [estrategia-de-testes.md](documentacao/estrategia-de-testes.md) e a matriz em [matriz-de-testes.md](documentacao/matriz-de-testes.md).
+
+## Documentacao
+
+- [Arquitetura](documentacao/arquitetura.md)
+- [Decisoes arquiteturais](documentacao/decisoes.md)
+- [Estrategia de testes](documentacao/estrategia-de-testes.md)
+- [Matriz de testes](documentacao/matriz-de-testes.md)
+- [Limitacoes conhecidas](documentacao/limitacoes-conhecidas.md)
+- [Solucao de problemas](documentacao/solucao-de-problemas.md)
+
+## Execução local
+
+Os scripts abaixo validam a prontidão do módulo e executam apenas comandos padrão quando existem arquivos implementados:
+
+```powershell
+.\scripts\run-api.ps1
+.\scripts\run-web.ps1
+.\scripts\run-mobile.ps1
+.\scripts\run-performance.ps1
+.\scripts\run-all.ps1
+```
+
+No Linux/macOS, use os equivalentes `.sh` da pasta `scripts`.
+
+Como os testes funcionais ainda não foram implementados, os módulos permanecem em estado de fundação.
+
+## Execução com Docker
+
+Para iniciar o ServeRest:
+
+```powershell
+docker compose up -d serverest
+```
+
+Para validar a configuração:
+
+```powershell
+docker compose config
+```
+
+O Compose utiliza a imagem fixada `paulogoncalvesbh/serverest:3.2.0` e expõe a porta 3000.
+
+## Dados, relatórios e CI/CD
+
+API e Performance usarão o ServeRest local. As fases futuras devem isolar dados gerados por execução e evitar estado compartilhado mutável. Os fluxos Web e Mobile devem preferir preparação e limpeza determinísticas por meio de helpers de API quando possível.
+
+Allure será o formato padrão para API, Web e Mobile. Resumos do k6 serão armazenados em `testes-performance/relatorios/`; relatórios gerados ficam em `relatorios/` e são ignorados pelo Git.
+
+CI/CD está documentado, mas não implementado nesta fase. O desenho futuro deve executar API, Web e Performance em jobs compatíveis com Docker e Mobile em um emulador Android configurado no GitHub Actions.
+
+## Aplicações e limitações
+
+A execução Mobile exige Android SDK, platform tools, emulador, Appium, driver UiAutomator2 e um caminho local para o APK. Em dispositivo físico, também serão necessários `UDID`, depuração USB e versões de plataforma compatíveis.
+
+As limitações conhecidas e os riscos estão em [limitacoes-conhecidas.md](documentacao/limitacoes-conhecidas.md). Os procedimentos de suporte estão em [solucao-de-problemas.md](documentacao/solucao-de-problemas.md).
+
+## Política de segredos
+
+Nunca versione arquivos `.env` reais, credenciais, tokens, chaves, APKs ou relatórios gerados. Use `.env.example` e os arquivos de exemplo dos módulos como modelos. Nenhum segredo real faz parte desta fundação.
+
+## Política de versionamento
+
+As alterações devem ser pequenas, justificadas e validadas antes do commit. Não use `latest` nas dependências ou imagens. A estratégia de testes está em [estrategia-de-testes.md](documentacao/estrategia-de-testes.md) e a matriz em [matriz-de-testes.md](documentacao/matriz-de-testes.md).
+
+## Documentação
+
+- [Arquitetura](documentacao/arquitetura.md)
+- [Decisões arquiteturais](documentacao/decisoes.md)
+- [Estratégia de testes](documentacao/estrategia-de-testes.md)
+- [Matriz de testes](documentacao/matriz-de-testes.md)
+- [Limitações conhecidas](documentacao/limitacoes-conhecidas.md)
+- [Solução de problemas](documentacao/solucao-de-problemas.md)

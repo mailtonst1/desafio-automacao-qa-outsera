@@ -1,54 +1,53 @@
 param(
-  [switch]$InstallSystemRequirements
+  [switch]$InstalarRequisitosDoSistema
 )
 
 $ErrorActionPreference = "Stop"
-$root = Split-Path -Parent $PSScriptRoot
+$raiz = Split-Path -Parent $PSScriptRoot
 
-function Copy-Example {
-  param([string]$Source, [string]$Destination)
-  if ((Test-Path -LiteralPath $Source) -and -not (Test-Path -LiteralPath $Destination)) {
-    Copy-Item -LiteralPath $Source -Destination $Destination
-    Write-Host "Created $Destination"
+function Copiar-Exemplo {
+  param([string]$Origem, [string]$Destino)
+  if ((Test-Path -LiteralPath $Origem) -and -not (Test-Path -LiteralPath $Destino)) {
+    Copy-Item -LiteralPath $Origem -Destination $Destino
+    Write-Host "Arquivo criado: $Destino"
   } else {
-    Write-Host "Skipped $Destination"
+    Write-Host "Arquivo mantido ou inexistente: $Destino"
   }
 }
 
-Write-Host "Bootstrap started at $root"
+Write-Host "Bootstrap iniciado em $raiz"
 
-New-Item -ItemType Directory -Force -Path "$root\reports\api","$root\reports\web","$root\reports\mobile","$root\reports\performance","$root\performance-tests\reports" | Out-Null
+New-Item -ItemType Directory -Force -Path "$raiz\relatorios\api","$raiz\relatorios\web","$raiz\relatorios\mobile","$raiz\relatorios\performance","$raiz\testes-performance\relatorios" | Out-Null
 
-Copy-Example "$root\.env.example" "$root\.env"
-Copy-Example "$root\mobile-tests\.env.example" "$root\mobile-tests\.env"
-Copy-Example "$root\mobile-tests\config\devices\local.example.yaml" "$root\mobile-tests\config\devices\local.yaml"
-Copy-Example "$root\mobile-tests\config\capabilities\android.example.properties" "$root\mobile-tests\config\capabilities\android.properties"
+Copiar-Exemplo "$raiz\.env.example" "$raiz\.env"
+Copiar-Exemplo "$raiz\testes-mobile\.env.example" "$raiz\testes-mobile\.env"
+Copiar-Exemplo "$raiz\testes-mobile\config\devices\local.example.yaml" "$raiz\testes-mobile\config\devices\local.yaml"
+Copiar-Exemplo "$raiz\testes-mobile\config\capabilities\android.example.properties" "$raiz\testes-mobile\config\capabilities\android.properties"
 
 if (Get-Command mvn -ErrorAction SilentlyContinue) {
-  Push-Location "$root\api-tests"
+  Push-Location "$raiz\testes-api"
   mvn -q -DskipTests dependency:go-offline
   Pop-Location
-  Push-Location "$root\mobile-tests"
+  Push-Location "$raiz\testes-mobile"
   mvn -q -DskipTests dependency:go-offline
   Pop-Location
 } else {
-  Write-Host "Maven not found. Java module dependencies were not installed."
+  Write-Host "Maven nao encontrado. As dependencias dos modulos Java nao foram instaladas."
 }
 
 if (Get-Command npm -ErrorAction SilentlyContinue) {
-  Push-Location "$root\web-e2e"
+  Push-Location "$raiz\testes-web-e2e"
   npm install
   Pop-Location
 } else {
-  Write-Host "npm not found. Web dependencies were not installed."
+  Write-Host "npm nao encontrado. As dependencias Web nao foram instaladas."
 }
 
-if ($InstallSystemRequirements) {
-  Write-Host "System requirement installation is intentionally not automated for Docker, Android Studio, Java, or Android SDK."
-  Write-Host "Install missing tools manually, then rerun scripts/doctor.ps1."
+if ($InstalarRequisitosDoSistema) {
+  Write-Host "A instalacao de requisitos do sistema nao e automatizada para Docker, Android Studio, Java ou Android SDK."
+  Write-Host "Instale as ferramentas ausentes manualmente e execute scripts/doctor.ps1 novamente."
 } else {
-  Write-Host "System requirements were not installed. Pass -InstallSystemRequirements for guidance only."
+  Write-Host "Os requisitos do sistema nao foram instalados. Use -InstalarRequisitosDoSistema apenas para orientacoes."
 }
 
-Write-Host "Bootstrap finished."
-
+Write-Host "Bootstrap finalizado."

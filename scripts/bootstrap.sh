@@ -1,53 +1,52 @@
 #!/usr/bin/env sh
 set -eu
 
-install_system_requirements=false
+instalar_requisitos_sistema=false
 if [ "${1:-}" = "--install-system-requirements" ]; then
-  install_system_requirements=true
+  instalar_requisitos_sistema=true
 fi
 
-script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-root="$(dirname "$script_dir")"
+diretorio_script="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+raiz="$(dirname "$diretorio_script")"
 
-copy_example() {
-  source="$1"
-  destination="$2"
-  if [ -f "$source" ] && [ ! -f "$destination" ]; then
-    cp "$source" "$destination"
-    echo "Created $destination"
+copiar_exemplo() {
+  origem="$1"
+  destino="$2"
+  if [ -f "$origem" ] && [ ! -f "$destino" ]; then
+    cp "$origem" "$destino"
+    echo "Arquivo criado: $destino"
   else
-    echo "Skipped $destination"
+    echo "Arquivo mantido ou inexistente: $destino"
   fi
 }
 
-echo "Bootstrap started at $root"
+echo "Bootstrap iniciado em $raiz"
 
-mkdir -p "$root/reports/api" "$root/reports/web" "$root/reports/mobile" "$root/reports/performance" "$root/performance-tests/reports"
+mkdir -p "$raiz/relatorios/api" "$raiz/relatorios/web" "$raiz/relatorios/mobile" "$raiz/relatorios/performance" "$raiz/testes-performance/relatorios"
 
-copy_example "$root/.env.example" "$root/.env"
-copy_example "$root/mobile-tests/.env.example" "$root/mobile-tests/.env"
-copy_example "$root/mobile-tests/config/devices/local.example.yaml" "$root/mobile-tests/config/devices/local.yaml"
-copy_example "$root/mobile-tests/config/capabilities/android.example.properties" "$root/mobile-tests/config/capabilities/android.properties"
+copiar_exemplo "$raiz/.env.example" "$raiz/.env"
+copiar_exemplo "$raiz/testes-mobile/.env.example" "$raiz/testes-mobile/.env"
+copiar_exemplo "$raiz/testes-mobile/config/devices/local.example.yaml" "$raiz/testes-mobile/config/devices/local.yaml"
+copiar_exemplo "$raiz/testes-mobile/config/capabilities/android.example.properties" "$raiz/testes-mobile/config/capabilities/android.properties"
 
 if command -v mvn >/dev/null 2>&1; then
-  (cd "$root/api-tests" && mvn -q -DskipTests dependency:go-offline)
-  (cd "$root/mobile-tests" && mvn -q -DskipTests dependency:go-offline)
+  (cd "$raiz/testes-api" && mvn -q -DskipTests dependency:go-offline)
+  (cd "$raiz/testes-mobile" && mvn -q -DskipTests dependency:go-offline)
 else
-  echo "Maven not found. Java module dependencies were not installed."
+  echo "Maven nao encontrado. As dependencias dos modulos Java nao foram instaladas."
 fi
 
 if command -v npm >/dev/null 2>&1; then
-  (cd "$root/web-e2e" && npm install)
+  (cd "$raiz/testes-web-e2e" && npm install)
 else
-  echo "npm not found. Web dependencies were not installed."
+  echo "npm nao encontrado. As dependencias Web nao foram instaladas."
 fi
 
-if [ "$install_system_requirements" = true ]; then
-  echo "System requirement installation is intentionally not automated for Docker, Android Studio, Java, or Android SDK."
-  echo "Install missing tools manually, then rerun scripts/doctor.sh."
+if [ "$instalar_requisitos_sistema" = true ]; then
+  echo "A instalacao de requisitos do sistema nao e automatizada para Docker, Android Studio, Java ou Android SDK."
+  echo "Instale as ferramentas ausentes manualmente e execute scripts/doctor.sh novamente."
 else
-  echo "System requirements were not installed. Pass --install-system-requirements for guidance only."
+  echo "Os requisitos do sistema nao foram instalados. Use --install-system-requirements apenas para orientacoes."
 fi
 
-echo "Bootstrap finished."
-
+echo "Bootstrap finalizado."

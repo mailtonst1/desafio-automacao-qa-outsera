@@ -1,32 +1,35 @@
-# Environment
+# Ambiente
 .env
 **/.env
 **/.env.local
 
-# Dependencies
+# Dependencias
 node_modules/
 target/
 .mvn/wrapper/maven-wrapper.jar
 
-# Reports and results
-reports/**
-!reports/.gitkeep
-!reports/**/.gitkeep
+# Relatorios e resultados
+relatorios/*
+!relatorios/.gitkeep
+!relatorios/*/
+!relatorios/*/.gitkeep
 **/allure-results/
 **/allure-report/
 **/cypress/videos/
 **/cypress/screenshots/
-performance-tests/reports/**
-!performance-tests/reports/.gitkeep
+testes-performance/relatorios/*
+!testes-performance/relatorios/.gitkeep
+!testes-performance/relatorios/*/
+!testes-performance/relatorios/*/.gitkeep
 
-# Mobile binaries and local config
-mobile-tests/apps/*
-!mobile-tests/apps/.gitkeep
-mobile-tests/config/devices/local.yaml
-mobile-tests/config/capabilities/android.properties
-mobile-tests/.env
+# Binarios mobile e configuracao local
+testes-mobile/apps/*
+!testes-mobile/apps/.gitkeep
+testes-mobile/config/devices/local.yaml
+testes-mobile/config/capabilities/android.properties
+testes-mobile/.env
 
-# OS and IDE
+# Sistema operacional e IDE
 .DS_Store
 Thumbs.db
 .idea/

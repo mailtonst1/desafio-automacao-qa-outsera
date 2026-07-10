@@ -1,88 +1,88 @@
 $ErrorActionPreference = "Continue"
 
-$failures = 0
+$falhas = 0
 
-function Test-Command {
+function Testar-Comando {
   param(
-    [string]$Name,
-    [string[]]$VersionArgs = @("--version"),
-    [string]$RequiredFor = "General",
-    [switch]$Optional
+    [string]$Nome,
+    [string[]]$ArgumentosDeVersao = @("--version"),
+    [string]$NecessarioPara = "Geral",
+    [switch]$Opcional
   )
 
-  $cmd = Get-Command $Name -ErrorAction SilentlyContinue
-  if (-not $cmd) {
-    $level = if ($Optional) { "WARN" } else { "FAIL" }
-    Write-Host "[$level][$RequiredFor] $Name not found"
-    if (-not $Optional) { $script:failures++ }
+  $comando = Get-Command $Nome -ErrorAction SilentlyContinue
+  if (-not $comando) {
+    $nivel = if ($Opcional) { "WARN" } else { "FAIL" }
+    Write-Host "[$nivel][$NecessarioPara] $Nome nao encontrado"
+    if (-not $Opcional) { $script:falhas++ }
     return
   }
 
-  $version = "version unavailable"
+  $versao = "versao indisponivel"
   try {
-    $version = (& $cmd.Source @VersionArgs 2>&1 | Select-Object -First 1)
+    $versao = (& $comando.Source @ArgumentosDeVersao 2>&1 | Select-Object -First 1)
   } catch {
-    $version = "version check failed: $($_.Exception.Message)"
+    $versao = "falha ao verificar versao: $($_.Exception.Message)"
   }
 
-  Write-Host "[OK][$RequiredFor] $Name"
-  Write-Host "  path: $($cmd.Source)"
-  Write-Host "  version: $version"
+  Write-Host "[OK][$NecessarioPara] $Nome"
+  Write-Host "  caminho: $($comando.Source)"
+  Write-Host "  versao: $versao"
 }
 
-function Test-EnvPath {
+function Testar-CaminhoDeAmbiente {
   param(
-    [string]$Name,
-    [string]$RequiredFor = "Mobile"
+    [string]$Nome,
+    [string]$NecessarioPara = "Mobile"
   )
 
-  $value = [Environment]::GetEnvironmentVariable($Name)
-  if ([string]::IsNullOrWhiteSpace($value)) {
-    Write-Host "[WARN][$RequiredFor] $Name is not set"
+  $valor = [Environment]::GetEnvironmentVariable($Nome)
+  if ([string]::IsNullOrWhiteSpace($valor)) {
+    Write-Host "[WARN][$NecessarioPara] $Nome nao definido"
     return
   }
 
-  if (Test-Path -LiteralPath $value) {
-    Write-Host "[OK][$RequiredFor] $Name=$value"
+  if (Test-Path -LiteralPath $valor) {
+    Write-Host "[OK][$NecessarioPara] $Nome=$valor"
   } else {
-    Write-Host "[WARN][$RequiredFor] $Name points to a missing path: $value"
+    Write-Host "[WARN][$NecessarioPara] $Nome aponta para caminho inexistente: $valor"
   }
 }
 
-Write-Host "== General =="
-Test-Command -Name "git" -RequiredFor "General"
-Test-Command -Name "docker" -RequiredFor "General"
-Test-Command -Name "docker" -VersionArgs @("compose", "version") -RequiredFor "General"
+Write-Host "== Geral =="
+Testar-Comando -Nome "git" -NecessarioPara "Geral"
+Testar-Comando -Nome "docker" -NecessarioPara "Geral"
+Testar-Comando -Nome "docker" -ArgumentosDeVersao @("compose", "version") -NecessarioPara "Geral"
 
 Write-Host "`n== API =="
-Test-Command -Name "java" -RequiredFor "API"
-Test-Command -Name "mvn" -RequiredFor "API"
+Testar-Comando -Nome "java" -NecessarioPara "API"
+Testar-Comando -Nome "mvn" -NecessarioPara "API"
 
 Write-Host "`n== Web =="
-Test-Command -Name "node" -RequiredFor "Web"
-Test-Command -Name "npm" -RequiredFor "Web"
+Testar-Comando -Nome "node" -NecessarioPara "Web"
+Testar-Comando -Nome "npm" -NecessarioPara "Web"
 
 Write-Host "`n== Mobile =="
-Test-EnvPath -Name "JAVA_HOME"
-Test-EnvPath -Name "ANDROID_HOME"
-Test-EnvPath -Name "ANDROID_SDK_ROOT"
-Test-Command -Name "java" -RequiredFor "Mobile"
-Test-Command -Name "mvn" -RequiredFor "Mobile"
-Test-Command -Name "adb" -RequiredFor "Mobile" -Optional
-Test-Command -Name "emulator" -RequiredFor "Mobile" -Optional
-Test-Command -Name "appium" -RequiredFor "Mobile" -Optional
+Testar-CaminhoDeAmbiente -Nome "JAVA_HOME"
+Testar-CaminhoDeAmbiente -Nome "ANDROID_HOME"
+Testar-CaminhoDeAmbiente -Nome "ANDROID_SDK_ROOT"
+Testar-Comando -Nome "java" -NecessarioPara "Mobile"
+Testar-Comando -Nome "mvn" -NecessarioPara "Mobile"
+Testar-Comando -Nome "adb" -NecessarioPara "Mobile" -Opcional
+Testar-Comando -Nome "emulator" -NecessarioPara "Mobile" -Opcional
+Testar-Comando -Nome "appium" -NecessarioPara "Mobile" -Opcional
 if (Get-Command appium -ErrorAction SilentlyContinue) {
-  Write-Host "[INFO][Mobile] Appium installed drivers:"
+  Write-Host "[INFO][Mobile] Drivers Appium instalados:"
   appium driver list --installed 2>&1
 }
 
 Write-Host "`n== Performance =="
-Test-Command -Name "k6" -RequiredFor "Performance" -Optional
+Testar-Comando -Nome "k6" -NecessarioPara "Performance" -Opcional
 
-if ($failures -gt 0) {
-  Write-Host "`nDoctor completed with $failures required failure(s)."
+if ($falhas -gt 0) {
+  Write-Host "`nDiagnostico concluido com $falhas falha(s) obrigatoria(s)."
   exit 1
 }
 
-Write-Host "`nDoctor completed successfully for required dependencies. Optional warnings may remain."
+Write-Host "`nDiagnostico concluido com sucesso para as dependencias obrigatorias. Avisos opcionais podem permanecer."
 exit 0

@@ -1,9 +1,8 @@
 $ErrorActionPreference = "Stop"
-$root = Split-Path -Parent $PSScriptRoot
-$scenario = "$root\performance-tests\scenarios\smoke.js"
-if (-not (Test-Path -LiteralPath $scenario)) {
-  Write-Host "Performance scenarios are not implemented in this phase."
+$raiz = Split-Path -Parent $PSScriptRoot
+$cenario = "$raiz\testes-performance\cenarios\smoke.js"
+if (-not (Test-Path -LiteralPath $cenario)) {
+  Write-Host "Os cenarios de performance nao foram implementados nesta fase."
   exit 1
 }
-k6 run $scenario
-
+k6 run $cenario

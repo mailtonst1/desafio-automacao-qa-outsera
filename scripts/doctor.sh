@@ -1,85 +1,84 @@
 #!/usr/bin/env sh
 set +e
 
-failures=0
+falhas=0
 
-check_command() {
-  name="$1"
-  args="${2:---version}"
-  module="$3"
-  optional="$4"
+verificar_comando() {
+  nome="$1"
+  argumentos="${2:---version}"
+  modulo="$3"
+  opcional="$4"
 
-  path="$(command -v "$name" 2>/dev/null)"
-  if [ -z "$path" ]; then
-    if [ "$optional" = "optional" ]; then
-      echo "[WARN][$module] $name not found"
+  caminho="$(command -v "$nome" 2>/dev/null)"
+  if [ -z "$caminho" ]; then
+    if [ "$opcional" = "opcional" ]; then
+      echo "[WARN][$modulo] $nome nao encontrado"
     else
-      echo "[FAIL][$module] $name not found"
-      failures=$((failures + 1))
+      echo "[FAIL][$modulo] $nome nao encontrado"
+      falhas=$((falhas + 1))
     fi
     return
   fi
 
-  version="$($name $args 2>&1 | head -n 1)"
-  echo "[OK][$module] $name"
-  echo "  path: $path"
-  echo "  version: $version"
+  versao="$($nome $argumentos 2>&1 | head -n 1)"
+  echo "[OK][$modulo] $nome"
+  echo "  caminho: $caminho"
+  echo "  versao: $versao"
 }
 
-check_env_path() {
-  name="$1"
-  module="$2"
-  eval value="\${$name}"
-  if [ -z "$value" ]; then
-    echo "[WARN][$module] $name is not set"
-  elif [ -e "$value" ]; then
-    echo "[OK][$module] $name=$value"
+verificar_caminho_ambiente() {
+  nome="$1"
+  modulo="$2"
+  eval valor="\${$nome}"
+  if [ -z "$valor" ]; then
+    echo "[WARN][$modulo] $nome nao definido"
+  elif [ -e "$valor" ]; then
+    echo "[OK][$modulo] $nome=$valor"
   else
-    echo "[WARN][$module] $name points to a missing path: $value"
+    echo "[WARN][$modulo] $nome aponta para caminho inexistente: $valor"
   fi
 }
 
-echo "== General =="
-check_command git "--version" General
-check_command docker "--version" General
-check_command docker "compose version" General
+echo "== Geral =="
+verificar_comando git "--version" Geral
+verificar_comando docker "--version" Geral
+verificar_comando docker "compose version" Geral
 
 echo
 echo "== API =="
-check_command java "--version" API
-check_command mvn "--version" API
+verificar_comando java "--version" API
+verificar_comando mvn "--version" API
 
 echo
 echo "== Web =="
-check_command node "--version" Web
-check_command npm "--version" Web
+verificar_comando node "--version" Web
+verificar_comando npm "--version" Web
 
 echo
 echo "== Mobile =="
-check_env_path JAVA_HOME Mobile
-check_env_path ANDROID_HOME Mobile
-check_env_path ANDROID_SDK_ROOT Mobile
-check_command java "--version" Mobile
-check_command mvn "--version" Mobile
-check_command adb "version" Mobile optional
-check_command emulator "-version" Mobile optional
-check_command appium "--version" Mobile optional
+verificar_caminho_ambiente JAVA_HOME Mobile
+verificar_caminho_ambiente ANDROID_HOME Mobile
+verificar_caminho_ambiente ANDROID_SDK_ROOT Mobile
+verificar_comando java "--version" Mobile
+verificar_comando mvn "--version" Mobile
+verificar_comando adb "version" Mobile opcional
+verificar_comando emulator "-version" Mobile opcional
+verificar_comando appium "--version" Mobile opcional
 if command -v appium >/dev/null 2>&1; then
-  echo "[INFO][Mobile] Appium installed drivers:"
+  echo "[INFO][Mobile] Drivers Appium instalados:"
   appium driver list --installed 2>&1
 fi
 
 echo
 echo "== Performance =="
-check_command k6 "version" Performance optional
+verificar_comando k6 "version" Performance opcional
 
-if [ "$failures" -gt 0 ]; then
+if [ "$falhas" -gt 0 ]; then
   echo
-  echo "Doctor completed with $failures required failure(s)."
+  echo "Diagnostico concluido com $falhas falha(s) obrigatoria(s)."
   exit 1
 fi
 
 echo
-echo "Doctor completed successfully for required dependencies. Optional warnings may remain."
+echo "Diagnostico concluido com sucesso para as dependencias obrigatorias. Avisos opcionais podem permanecer."
 exit 0
-
