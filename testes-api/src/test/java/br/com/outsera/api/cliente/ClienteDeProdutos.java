@@ -25,6 +25,10 @@ public class ClienteDeProdutos {
         return given().spec(especificacoes.criarPadrao()).header("Authorization", token).body(produto).post("/produtos");
     }
 
+    public Response criarSemAutenticacao(ProdutoRequisicao produto) {
+        return given().spec(especificacoes.criarPadrao()).body(produto).post("/produtos");
+    }
+
     public Response criarComMapa(Map<String, Object> corpo, String token) {
         return given().spec(especificacoes.criarPadrao()).header("Authorization", token).body(corpo).post("/produtos");
     }

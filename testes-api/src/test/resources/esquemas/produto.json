@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["nome", "preco", "descricao", "quantidade", "_id"],
+  "properties": {
+    "nome": {"type": "string"},
+    "preco": {"type": "integer"},
+    "descricao": {"type": "string"},
+    "quantidade": {"type": "integer", "minimum": 0},
+    "_id": {"type": "string"}
+  }
+}

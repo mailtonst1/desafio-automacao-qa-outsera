@@ -20,6 +20,10 @@ public class ClienteDeCarrinhos {
         return given().spec(especificacoes.criarPadrao()).header("Authorization", token).body(carrinho).post("/carrinhos");
     }
 
+    public Response criarSemAutenticacao(CarrinhoRequisicao carrinho) {
+        return given().spec(especificacoes.criarPadrao()).body(carrinho).post("/carrinhos");
+    }
+
     public Response buscarPorId(String id) {
         return given().spec(especificacoes.criarPadrao()).get("/carrinhos/{id}", id);
     }
