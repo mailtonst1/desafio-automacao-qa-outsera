@@ -41,3 +41,24 @@ services:
           cp -R target/site/allure-maven-plugin/. /workspace/relatorios/allure-report/;
         fi;
         exit $$codigo
+
+  testes-web:
+    profiles: ["web"]
+    build:
+      context: ./testes-web-e2e
+    environment:
+      CYPRESS_baseUrl: https://automationexercise.com
+    volumes:
+      - ./relatorios/web:/e2e/relatorios
+    entrypoint:
+      - sh
+      - -c
+      - >-
+        npm run $${MODO_WEB:-regressao};
+        codigo=$$?;
+        mkdir -p /e2e/relatorios/allure-results /e2e/relatorios/allure-report /e2e/relatorios/videos /e2e/relatorios/screenshots;
+        if [ -d allure-results ]; then cp -R allure-results/. /e2e/relatorios/allure-results/; fi;
+        if [ -d allure-report ]; then cp -R allure-report/. /e2e/relatorios/allure-report/; fi;
+        if [ -d cypress/videos ]; then cp -R cypress/videos/. /e2e/relatorios/videos/; fi;
+        if [ -d cypress/screenshots ]; then cp -R cypress/screenshots/. /e2e/relatorios/screenshots/; fi;
+        exit $$codigo
