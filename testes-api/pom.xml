@@ -13,6 +13,9 @@
     <junit.jupiter.version>5.11.4</junit.jupiter.version>
     <rest.assured.version>5.5.0</rest.assured.version>
     <allure.version>2.29.1</allure.version>
+    <allure.commandline.version>2.30.0</allure.commandline.version>
+    <jackson.version>2.17.3</jackson.version>
+    <tags.junit></tags.junit>
   </properties>
 
   <dependencies>
@@ -26,6 +29,18 @@
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <version>${rest.assured.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.rest-assured</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>${rest.assured.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -44,11 +59,35 @@
         <version>3.5.2</version>
         <configuration>
           <useModulePath>false</useModulePath>
+          <groups>${tags.junit}</groups>
           <systemPropertyVariables>
             <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
           </systemPropertyVariables>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>io.qameta.allure</groupId>
+        <artifactId>allure-maven</artifactId>
+        <version>2.15.2</version>
+        <configuration>
+          <reportVersion>${allure.commandline.version}</reportVersion>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>smoke</id>
+      <properties>
+        <tags.junit>smoke</tags.junit>
+      </properties>
+    </profile>
+    <profile>
+      <id>regressao</id>
+      <properties>
+        <tags.junit>regressao</tags.junit>
+      </properties>
+    </profile>
+  </profiles>
 </project>

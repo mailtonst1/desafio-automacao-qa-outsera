@@ -1,8 +1,8 @@
 # Desafio de automacao de QA Outsera
 
-Monorepo que organiza a fundacao de automacao de testes de API, Web E2E, Mobile e Performance.
+Monorepo que organiza a automacao de testes de API, Web E2E, Mobile e Performance.
 
-Esta fase estabelece apenas a base do repositorio: documentacao, configuracoes iniciais dos modulos, scripts de diagnostico e bootstrap, alem da configuracao do servico local. Os testes funcionais serao implementados em fases posteriores.
+O módulo de API está implementado com REST Assured, JUnit 5, Allure e ServeRest local. Web E2E, Mobile e Performance permanecem em fase de fundação.
 
 ## Objetivo e escopo
 
@@ -10,7 +10,7 @@ O objetivo e fornecer uma estrutura versionada, reproduzivel e preparada para a 
 
 Modulos planejados:
 
-- `testes-api`: Java, Maven, REST Assured, JUnit 5, Allure e ServeRest local.
+- `testes-api`: Java, Maven Wrapper, REST Assured, JUnit 5, Jackson, JSON Schema Validator, Allure e ServeRest local. Consulte o [README do módulo](testes-api/README.md).
 - `testes-web-e2e`: Cypress, TypeScript, Cucumber/Gherkin, Page Object Pattern, Allure e Automation Exercise.
 - `testes-mobile`: Java, Maven, Appium, UiAutomator2, JUnit 5, Screen Object Pattern, Allure e Sauce Labs My Demo App Android.
 - `testes-performance`: k6, ServeRest local, cenario smoke e cenario de carga com 500 VUs.
@@ -93,7 +93,7 @@ Os scripts de diagnostico sao somente leitura e verificam Git, Docker, Docker Co
 Os scripts abaixo validam a prontidao do modulo e executam apenas comandos padrao quando existem arquivos implementados:
 
 ```powershell
-.\scripts\run-api.ps1
+.\scripts\executar-api.ps1
 .\scripts\run-web.ps1
 .\scripts\run-mobile.ps1
 .\scripts\run-performance.ps1
@@ -156,7 +156,7 @@ As alteracoes devem ser pequenas, justificadas e validadas antes do commit. Nao 
 Os scripts abaixo validam a prontidão do módulo e executam apenas comandos padrão quando existem arquivos implementados:
 
 ```powershell
-.\scripts\run-api.ps1
+.\scripts\executar-api.ps1
 .\scripts\run-web.ps1
 .\scripts\run-mobile.ps1
 .\scripts\run-performance.ps1

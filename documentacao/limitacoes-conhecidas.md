@@ -5,6 +5,8 @@
 - A execucao Mobile depende de Android SDK local, emulador, Appium e caminho valido para o APK.
 - O APK do Sauce Labs My Demo App Android nao e baixado nem versionado.
 - O bootstrap nao instala Docker, Android Studio ou Java e nao altera variaveis de ambiente do sistema silenciosamente.
+- A execução Linux/macOS do script de API requer `sh`, `curl`, Docker e Docker Compose disponíveis no ambiente. A validação sintática Bash depende de um shell POSIX no computador executor.
+- O relatório HTML é gerado sob demanda pela opção `GerarRelatorio`/`--gerar-relatorio`; os resultados Allure são sempre preservados no caminho de relatórios.
 
 ## Vulnerabilidades transitivas do npm
 

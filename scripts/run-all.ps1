@@ -1,6 +1,5 @@
 $ErrorActionPreference = "Stop"
-& "$PSScriptRoot\run-api.ps1"
+& "$PSScriptRoot\executar-api.ps1"
 & "$PSScriptRoot\run-web.ps1"
 & "$PSScriptRoot\run-mobile.ps1"
 & "$PSScriptRoot\run-performance.ps1"
-
