@@ -1,20 +1,20 @@
-# Troubleshooting
+# Solucao de problemas
 
 ## ServeRest
 
-Check Docker Compose configuration:
+Verifique a configuracao do Docker Compose:
 
 ```sh
 docker compose config
 ```
 
-Start the service:
+Inicie o servico:
 
 ```sh
 docker compose up -d serverest
 ```
 
-Health endpoint:
+Endpoint de health check:
 
 ```text
 http://localhost:3000/status
@@ -22,7 +22,7 @@ http://localhost:3000/status
 
 ## Mobile
 
-Verify Android tooling:
+Verifique as ferramentas Android:
 
 ```sh
 adb devices
@@ -30,5 +30,4 @@ emulator -list-avds
 appium driver list --installed
 ```
 
-The UiAutomator2 driver must be installed through Appium before mobile tests can run.
-
+O driver UiAutomator2 deve ser instalado pelo Appium antes da execucao dos testes Mobile.

@@ -1,21 +1,22 @@
-# Architecture
+# Arquitetura
 
-The repository is organized as a monorepo with independent modules and shared root scripts.
+O repositorio e um monorepo com modulos independentes e scripts compartilhados na raiz.
 
-## Modules
+## Modulos
 
-- `api-tests`: Maven project for API automation.
-- `web-e2e`: Node project for Cypress automation.
-- `mobile-tests`: Maven project for Appium automation.
-- `performance-tests`: k6 assets and reports.
-- `scripts`: cross-module diagnostics, bootstrap, and run wrappers.
-- `docs`: project documentation.
+- `testes-api`: projeto Maven para automacao de API.
+- `testes-web-e2e`: projeto Node.js para automacao com Cypress.
+- `testes-mobile`: projeto Maven para automacao com Appium.
+- `testes-performance`: recursos e relatorios do k6.
+- `scripts`: diagnostico, bootstrap e wrappers de execucao entre modulos.
+- `documentacao`: documentacao do projeto.
+- `relatorios`: destino dos relatorios gerados.
 
-## Services
+## Servicos
 
-ServeRest runs from Docker Compose using `paulogoncalvesbh/serverest:3.2.0`.
+O ServeRest e executado pelo Docker Compose usando `paulogoncalvesbh/serverest:3.2.0`.
 
-Host URL:
+URL no host:
 
 ```text
 http://localhost:3000
@@ -26,4 +27,3 @@ Container network URL:
 ```text
 http://serverest:3000
 ```
-

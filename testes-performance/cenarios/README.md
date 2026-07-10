@@ -1,9 +1,8 @@
-# Performance Scenarios
+# Cenarios de performance
 
-Performance scripts will be implemented in a later phase.
+Os scripts de performance serao implementados em uma fase posterior.
 
-Planned scenarios:
+Cenarios planejados:
 
-- Smoke: ServeRest health and basic availability.
-- Load: ServeRest load test with 500 VUs.
-
+- Smoke: health check e disponibilidade basica do ServeRest.
+- Carga: teste de carga do ServeRest com 500 VUs.

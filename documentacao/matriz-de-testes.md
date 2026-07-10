@@ -1,16 +1,15 @@
-# Test Matrix
+# Matriz de testes
 
-| Module | Target | Tooling | Status |
+| Modulo | Alvo | Ferramentas | Status |
 | --- | --- | --- | --- |
-| API | ServeRest local | Java, Maven, REST Assured, JUnit 5, Allure | Foundation only |
-| Web E2E | Automation Exercise | Cypress, TypeScript, Cucumber, Allure | Foundation only |
-| Mobile | Sauce Labs My Demo App Android | Java, Maven, Appium, UiAutomator2, JUnit 5, Allure | Foundation only |
-| Performance | ServeRest local | k6 | Foundation only |
+| API | ServeRest local | Java, Maven, REST Assured, JUnit 5, Allure | Somente fundacao |
+| Web E2E | Automation Exercise | Cypress, TypeScript, Cucumber, Allure | Somente fundacao |
+| Mobile | Sauce Labs My Demo App Android | Java, Maven, Appium, UiAutomator2, JUnit 5, Allure | Somente fundacao |
+| Performance | ServeRest local | k6 | Somente fundacao |
 
-## Planned Coverage
+## Cobertura planejada
 
-- API: authentication, user, product, and cart workflows.
-- Web: user registration, login, product search, cart, and checkout-adjacent flows.
-- Mobile: catalog, cart, navigation, and checkout-adjacent flows.
-- Performance: health smoke and 500 VU load scenario.
-
+- API: fluxos de autenticacao, usuario, produto e carrinho.
+- Web: cadastro de usuario, login, busca de produtos, carrinho e fluxos proximos ao checkout.
+- Mobile: catalogo, carrinho, navegacao e fluxos proximos ao checkout.
+- Performance: smoke de health check e cenario de carga com 500 VUs.
