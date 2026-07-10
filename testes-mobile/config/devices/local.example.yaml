@@ -3,5 +3,4 @@ platformName: Android
 platformVersion: "15"
 automationName: UiAutomator2
 udid: emulator-5554
-appPath: mobile-tests/apps/my-demo-app-android.apk
-
+appPath: testes-mobile/apps/my-demo-app-android.apk
