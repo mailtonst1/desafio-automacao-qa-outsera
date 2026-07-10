@@ -1,0 +1,11 @@
+{
+  "smoke": {
+    "vus": 1,
+    "duration": "30s"
+  },
+  "load": {
+    "vus": 500,
+    "duration": "5m"
+  }
+}
+

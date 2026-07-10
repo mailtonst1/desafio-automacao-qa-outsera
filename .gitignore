@@ -1,0 +1,33 @@
+# Environment
+.env
+**/.env
+**/.env.local
+
+# Dependencies
+node_modules/
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# Reports and results
+reports/**
+!reports/.gitkeep
+!reports/**/.gitkeep
+**/allure-results/
+**/allure-report/
+**/cypress/videos/
+**/cypress/screenshots/
+performance-tests/reports/**
+!performance-tests/reports/.gitkeep
+
+# Mobile binaries and local config
+mobile-tests/apps/*
+!mobile-tests/apps/.gitkeep
+mobile-tests/config/devices/local.yaml
+mobile-tests/config/capabilities/android.properties
+mobile-tests/.env
+
+# OS and IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
