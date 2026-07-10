@@ -17,6 +17,7 @@ services:
       context: ./testes-api
     environment:
       BASE_URL: http://serverest:3000
+      GERAR_RELATORIO: "false"
     depends_on:
       serverest:
         condition: service_healthy
@@ -28,6 +29,15 @@ services:
       - >-
         ./mvnw -B test $${MAVEN_ARGS:-};
         codigo=$$?;
+        if [ "$${GERAR_RELATORIO}" = "true" ]; then
+          ./mvnw -B allure:report;
+          codigo_relatorio=$$?;
+          if [ $$codigo -eq 0 ]; then codigo=$$codigo_relatorio; fi;
+        fi;
         mkdir -p /workspace/relatorios/allure-results;
         if [ -d target/allure-results ]; then cp -R target/allure-results/. /workspace/relatorios/allure-results/; fi;
+        if [ -d target/site/allure-maven-plugin ]; then
+          mkdir -p /workspace/relatorios/allure-report;
+          cp -R target/site/allure-maven-plugin/. /workspace/relatorios/allure-report/;
+        fi;
         exit $$codigo
