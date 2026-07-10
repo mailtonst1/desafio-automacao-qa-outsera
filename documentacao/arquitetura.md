@@ -12,6 +12,10 @@ O repositorio e um monorepo com modulos independentes e scripts compartilhados n
 - `documentacao`: documentacao do projeto.
 - `relatorios`: destino dos relatorios gerados.
 
+## Testes de API
+
+`testes-api` usa Client Objects para encapsular HTTP, fábricas para dados exclusivos, specifications para configuração comum e um gerenciador de limpeza para recursos criados. O Docker Compose disponibiliza o serviço `testes-api` no profile `api`, conectado ao ServeRest pela rede interna em `http://serverest:3000`.
+
 ## Servicos
 
 O ServeRest e executado pelo Docker Compose usando `paulogoncalvesbh/serverest:3.2.0`.
