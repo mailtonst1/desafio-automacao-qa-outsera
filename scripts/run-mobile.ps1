@@ -1,6 +1,5 @@
 $ErrorActionPreference = "Stop"
-$root = Split-Path -Parent $PSScriptRoot
-Push-Location "$root\mobile-tests"
+$raiz = Split-Path -Parent $PSScriptRoot
+Push-Location "$raiz\testes-mobile"
 mvn test
 Pop-Location
-

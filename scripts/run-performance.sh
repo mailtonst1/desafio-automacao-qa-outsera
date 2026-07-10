@@ -1,11 +1,10 @@
 #!/usr/bin/env sh
 set -eu
-script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-root="$(dirname "$script_dir")"
-scenario="$root/performance-tests/scenarios/smoke.js"
-if [ ! -f "$scenario" ]; then
-  echo "Performance scenarios are not implemented in this phase."
+diretorio_script="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+raiz="$(dirname "$diretorio_script")"
+cenario="$raiz/testes-performance/cenarios/smoke.js"
+if [ ! -f "$cenario" ]; then
+  echo "Os cenarios de performance nao foram implementados nesta fase."
   exit 1
 fi
-k6 run "$scenario"
-
+k6 run "$cenario"
