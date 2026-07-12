@@ -106,6 +106,8 @@ jobs:
           disable-animations: true
           script: |
             mkdir -p testes-mobile/target
+            adb shell wm size 1080x2400
+            adb shell wm density 420
             adb install -r testes-mobile/apps/mda-2.2.0-25.apk
             appium server --address 127.0.0.1 --port 4723 > testes-mobile/target/appium.log 2>&1 &
             cd testes-mobile && bash ./mvnw -B test allure:report
