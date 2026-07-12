@@ -1,0 +1,20 @@
+name: Carga de Performance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  carga-performance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash ./scripts/executar-performance.sh carga
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-performance-carga
+          path: testes-performance/relatorios/carga
+          if-no-files-found: warn
