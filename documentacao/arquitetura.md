@@ -16,6 +16,10 @@ O repositorio e um monorepo com modulos independentes e scripts compartilhados n
 
 `testes-api` usa Client Objects para encapsular HTTP, fábricas para dados exclusivos, specifications para configuração comum e um gerenciador de limpeza para recursos criados. O Docker Compose disponibiliza o serviço `testes-api` no profile `api`, conectado ao ServeRest pela rede interna em `http://serverest:3000`.
 
+## Testes Mobile
+
+`testes-mobile` usa Java 17, JUnit 5, Appium e UiAutomator2. `GerenciadorDeDriver` concentra as capabilities e o ciclo do `AndroidDriver`; as telas encapsulam os seletores do aplicativo e os fluxos reutilizam navegacao comum. Os testes usam esperas explicitas e anexam screenshot e fonte da pagina ao Allure em caso de falha.
+
 ## Servicos
 
 O ServeRest e executado pelo Docker Compose usando `paulogoncalvesbh/serverest:3.2.0`.
