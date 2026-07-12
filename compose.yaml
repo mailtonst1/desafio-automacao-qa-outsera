@@ -62,3 +62,29 @@ services:
         if [ -d cypress/videos ]; then cp -R cypress/videos/. /e2e/relatorios/videos/; fi;
         if [ -d cypress/screenshots ]; then cp -R cypress/screenshots/. /e2e/relatorios/screenshots/; fi;
         exit $$codigo
+
+  k6-fumaca:
+    profiles: ["k6-fumaca"]
+    image: grafana/k6:0.56.0
+    working_dir: /scripts
+    environment:
+      BASE_URL: http://serverest:3000
+    depends_on:
+      serverest:
+        condition: service_healthy
+    volumes:
+      - ./testes-performance:/scripts
+    command: run cenarios/fumaca.js
+
+  k6-carga:
+    profiles: ["k6-carga"]
+    image: grafana/k6:0.56.0
+    working_dir: /scripts
+    environment:
+      BASE_URL: http://serverest:3000
+    depends_on:
+      serverest:
+        condition: service_healthy
+    volumes:
+      - ./testes-performance:/scripts
+    command: run cenarios/carga-500-usuarios.js
