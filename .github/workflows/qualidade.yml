@@ -11,6 +11,8 @@ concurrency:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 jobs:
   validacao:
@@ -173,3 +175,19 @@ jobs:
           test '${{ needs.testes-web.result }}' = success
           test '${{ needs.testes-mobile.result }}' = success
           test '${{ needs.performance-fumaca.result }}' = success
+
+  pages:
+    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: relatorio-unificado
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: relatorio-allure-unificado
+          path: relatorio
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: relatorio
+      - id: publicar
+        uses: actions/deploy-pages@v4
