@@ -14,6 +14,6 @@ public final class TelaDeCheckout extends TelaBase {
         preencher(By.id(ID + "stateET"), estado);
         preencher(By.id(ID + "countryET"), pais);
     }
-    public void enviar() { tocar(By.id(ID + "paymentBtn")); }
+    public void enviar() { tocarAposRolar(ID + "paymentBtn"); }
     public String erroDoNome() { return visivel(By.id(ID + "fullNameErrorTV")).getText(); }
 }

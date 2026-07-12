@@ -1,0 +1,199 @@
+name: Qualidade
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: qualidade-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  validacao:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Valida configuracoes e arquivos sensiveis
+        run: |
+          docker compose config --quiet
+          test ! -f .env
+          test -f testes-api/mvnw
+          test -f testes-web-e2e/package-lock.json
+          test -f testes-mobile/mvnw
+          test -f relatorio-unificado/package-lock.json
+          ! git ls-files | grep -E '\.(apk|ipa)$'
+          ! git ls-files | grep -E '(^|/)(allure-results|allure-report|relatorios)/(summary\.(json|txt|html))$'
+          ! rg -n -i '(api[_-]?key|secret|ghp_)' --glob '!**/.env.example' .
+
+  testes-api:
+    needs: validacao
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - run: docker compose up -d serverest --wait
+      - run: bash ./mvnw -B test allure:report
+        working-directory: testes-api
+      - if: failure()
+        run: docker compose logs serverest
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-api
+          path: |
+            testes-api/target/allure-results
+            testes-api/target/surefire-reports
+          if-no-files-found: warn
+
+  testes-web:
+    needs: validacao
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.5'
+          cache: npm
+          cache-dependency-path: testes-web-e2e/package-lock.json
+      - run: npm ci
+        working-directory: testes-web-e2e
+      - run: npx cypress install
+        working-directory: testes-web-e2e
+      - run: npm run regressao
+        working-directory: testes-web-e2e
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-web
+          path: |
+            testes-web-e2e/allure-results
+            testes-web-e2e/cypress/screenshots
+            testes-web-e2e/cypress/videos
+          if-no-files-found: warn
+
+  testes-mobile:
+    needs: validacao
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.5'
+      - run: |
+          npm install -g appium@3.1.2
+          appium driver install uiautomator2@6.7.9
+          bash ./testes-mobile/scripts/baixar-aplicativo.sh
+      - run: sudo chmod 666 /dev/kvm
+      - uses: ReactiveCircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
+        with:
+          api-level: 34
+          arch: x86_64
+          disable-animations: true
+          script: |
+            mkdir -p testes-mobile/target
+            adb shell wm size 1080x2400
+            adb shell wm density 420
+            adb install -r testes-mobile/apps/mda-2.2.0-25.apk
+            appium server --address 127.0.0.1 --port 4723 > testes-mobile/target/appium.log 2>&1 &
+            cd testes-mobile && bash ./mvnw -B test allure:report
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-mobile
+          path: |
+            testes-mobile/target/allure-results
+            testes-mobile/target/surefire-reports
+            testes-mobile/target/appium.log
+          if-no-files-found: warn
+
+  performance-fumaca:
+    needs: validacao
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          bash ./scripts/executar-performance.sh fumaca
+          find testes-performance/relatorios -type f -print
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-performance
+          path: testes-performance/relatorios
+          if-no-files-found: warn
+
+  relatorio-unificado:
+    if: always()
+    needs: [testes-api, testes-web, testes-mobile, performance-fumaca]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.5'
+          cache: npm
+          cache-dependency-path: relatorio-unificado/package-lock.json
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: resultados-*
+          path: artefatos
+          merge-multiple: false
+      - run: |
+          npm ci
+          mkdir -p entradas/api entradas/web entradas/mobile testes-performance/relatorios/fumaca
+          find artefatos/resultados-api -type f -exec cp {} entradas/api/ \; 2>/dev/null || true
+          find artefatos/resultados-web -type f -exec cp {} entradas/web/ \; 2>/dev/null || true
+          find artefatos/resultados-mobile -type f -exec cp {} entradas/mobile/ \; 2>/dev/null || true
+          find artefatos/resultados-performance -type f -exec cp {} testes-performance/relatorios/fumaca/ \; 2>/dev/null || true
+          npm run preparar -- --api entradas/api --web entradas/web --mobile entradas/mobile
+          if [ -f testes-performance/relatorios/fumaca/summary.json ]; then npm run converter-k6 -- --origem testes-performance/relatorios/fumaca --destino temporario --perfil Fumaca; fi
+          npm run gerar
+        working-directory: relatorio-unificado
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-allure-unificado
+          path: relatorio-unificado/saida
+          if-no-files-found: warn
+
+  quality-gate:
+    if: always()
+    needs: [testes-api, testes-web, testes-mobile, performance-fumaca, relatorio-unificado]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aplica quality gate
+        run: |
+          test '${{ needs.testes-api.result }}' = success
+          test '${{ needs.testes-web.result }}' = success
+          test '${{ needs.testes-mobile.result }}' = success
+          test '${{ needs.performance-fumaca.result }}' = success
+
+  pages:
+    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: relatorio-unificado
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: relatorio-allure-unificado
+          path: relatorio
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: relatorio
+      - id: publicar
+        uses: actions/deploy-pages@v4

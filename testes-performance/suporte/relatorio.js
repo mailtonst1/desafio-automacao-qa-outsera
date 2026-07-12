@@ -27,9 +27,10 @@ export function criarHtml(data) {
 }
 
 export function gerarRelatorios(data) {
+  const diretorio = __ENV.DIRETORIO_RELATORIOS || 'relatorios';
   return {
-    'relatorios/summary.json': JSON.stringify(data, null, 2),
-    'relatorios/summary.txt': criarResumo(data),
-    'relatorios/summary.html': criarHtml(data),
+    [`${diretorio}/summary.json`]: JSON.stringify(data, null, 2),
+    [`${diretorio}/summary.txt`]: criarResumo(data),
+    [`${diretorio}/summary.html`]: criarHtml(data),
   };
 }

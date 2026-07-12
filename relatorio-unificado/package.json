@@ -1,0 +1,16 @@
+{
+  "name": "relatorio-unificado",
+  "version": "1.0.0",
+  "scripts": {
+    "preparar": "node scripts/preparar-resultados.mjs",
+    "converter-k6": "node scripts/converter-k6.mjs",
+    "gerar": "allure generate temporario --output saida"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "allure": "3.14.2"
+  }
+}

@@ -10,6 +10,8 @@ $hostPermitido = ([uri]$baseUrl).Host -in @('localhost', '127.0.0.1', 'serverest
 if (-not $hostPermitido) { throw "BASE_URL nao permitida: $baseUrl" }
 
 $servico = if ($Perfil -eq 'fumaca') { 'k6-fumaca' } else { 'k6-carga' }
+$diretorioRelatorios = Join-Path $raiz "testes-performance\relatorios\$Perfil"
+New-Item -ItemType Directory -Force $diretorioRelatorios | Out-Null
 try {
   docker compose -f "$raiz\compose.yaml" up -d serverest --wait
   docker compose -f "$raiz\compose.yaml" --profile "k6-$Perfil" run --rm $servico
