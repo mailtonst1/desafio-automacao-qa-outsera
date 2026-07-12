@@ -79,6 +79,42 @@ jobs:
             testes-web-e2e/cypress/videos
           if-no-files-found: warn
 
+  testes-mobile:
+    needs: validacao
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.5'
+      - run: |
+          npm install -g appium@3.1.2
+          appium driver install uiautomator2@6.7.9
+          bash ./testes-mobile/scripts/baixar-aplicativo.sh
+      - uses: ReactiveCircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
+        with:
+          api-level: 34
+          arch: x86_64
+          disable-animations: true
+          script: |
+            adb install -r testes-mobile/apps/mda-2.2.0-25.apk
+            appium server --address 127.0.0.1 --port 4723 > testes-mobile/target/appium.log 2>&1 &
+            cd testes-mobile && bash ./mvnw -B test allure:report
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-mobile
+          path: |
+            testes-mobile/target/allure-results
+            testes-mobile/target/surefire-reports
+            testes-mobile/target/appium.log
+          if-no-files-found: warn
+
   performance-fumaca:
     needs: validacao
     runs-on: ubuntu-latest
@@ -94,7 +130,7 @@ jobs:
 
   relatorio-unificado:
     if: always()
-    needs: [testes-api, testes-web, performance-fumaca]
+    needs: [testes-api, testes-web, testes-mobile, performance-fumaca]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -110,11 +146,12 @@ jobs:
           merge-multiple: false
       - run: |
           npm ci
-          mkdir -p entradas/api entradas/web testes-performance/relatorios/fumaca
+          mkdir -p entradas/api entradas/web entradas/mobile testes-performance/relatorios/fumaca
           find artefatos/resultados-api -type f -exec cp {} entradas/api/ \; 2>/dev/null || true
           find artefatos/resultados-web -type f -exec cp {} entradas/web/ \; 2>/dev/null || true
+          find artefatos/resultados-mobile -type f -exec cp {} entradas/mobile/ \; 2>/dev/null || true
           find artefatos/resultados-performance -type f -exec cp {} testes-performance/relatorios/fumaca/ \; 2>/dev/null || true
-          npm run preparar -- --api entradas/api --web entradas/web
+          npm run preparar -- --api entradas/api --web entradas/web --mobile entradas/mobile
           if [ -f testes-performance/relatorios/fumaca/summary.json ]; then npm run converter-k6 -- --origem testes-performance/relatorios/fumaca --destino temporario --perfil Fumaca; fi
           npm run gerar
         working-directory: relatorio-unificado
@@ -127,11 +164,12 @@ jobs:
 
   quality-gate:
     if: always()
-    needs: [testes-api, testes-web, performance-fumaca, relatorio-unificado]
+    needs: [testes-api, testes-web, testes-mobile, performance-fumaca, relatorio-unificado]
     runs-on: ubuntu-latest
     steps:
       - name: Aplica quality gate
         run: |
           test '${{ needs.testes-api.result }}' = success
           test '${{ needs.testes-web.result }}' = success
+          test '${{ needs.testes-mobile.result }}' = success
           test '${{ needs.performance-fumaca.result }}' = success
