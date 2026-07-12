@@ -8,6 +8,7 @@ base_url="${BASE_URL:-http://localhost:3000}"
 host="$(printf '%s' "$base_url" | sed -E 's#^[a-z]+://([^/:]+).*#\1#')"
 case "$host" in localhost|127.0.0.1|serverest) ;; *) echo "BASE_URL nao permitida: $base_url" >&2; exit 2;; esac
 servico="k6-$perfil"
+mkdir -p "$raiz/testes-performance/relatorios/$perfil"
 
 limpar() { docker compose -f "$raiz/compose.yaml" down --remove-orphans; }
 trap limpar EXIT
