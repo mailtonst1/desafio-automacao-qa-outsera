@@ -170,11 +170,11 @@ jobs:
       - run: |
           npm ci
           mkdir -p entradas/api entradas/web entradas/mobile testes-performance/relatorios/fumaca testes-performance/relatorios/carga
-          find artefatos/resultados-api -type f -path '*/allure-results/*' -exec cp {} entradas/api/ \;
-          find artefatos/resultados-web -type f -path '*/allure-results/*' -exec cp {} entradas/web/ \;
-          find artefatos/resultados-mobile -type f -path '*/allure-results/*' -exec cp {} entradas/mobile/ \;
-          find artefatos/resultados-performance -type f -name 'summary.*' -exec cp {} testes-performance/relatorios/fumaca/ \;
-          find artefatos/resultados-performance-carga -type f -name 'summary.*' -exec cp {} testes-performance/relatorios/carga/ \;
+          find ../artefatos/resultados-api -type f -path '*/allure-results/*' -exec cp {} entradas/api/ \;
+          find ../artefatos/resultados-web -type f -path '*/allure-results/*' -exec cp {} entradas/web/ \;
+          find ../artefatos/resultados-mobile -type f -path '*/allure-results/*' -exec cp {} entradas/mobile/ \;
+          find ../artefatos/resultados-performance -type f -name 'summary.*' -exec cp {} testes-performance/relatorios/fumaca/ \;
+          find ../artefatos/resultados-performance-carga -type f -name 'summary.*' -exec cp {} testes-performance/relatorios/carga/ \;
           test -s testes-performance/relatorios/fumaca/summary.json
           test -s testes-performance/relatorios/carga/summary.json
           npm run preparar -- --api entradas/api --web entradas/web --mobile entradas/mobile
