@@ -33,6 +33,10 @@ testes-mobile/config/devices/local.yaml
 testes-mobile/config/capabilities/android.properties
 testes-mobile/.env
 
+# Relatorio Allure unificado
+relatorio-unificado/temporario/
+relatorio-unificado/saida/
+
 # Sistema operacional e IDE
 .DS_Store
 Thumbs.db
