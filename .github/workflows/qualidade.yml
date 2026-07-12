@@ -170,14 +170,18 @@ jobs:
       - run: |
           npm ci
           mkdir -p entradas/api entradas/web entradas/mobile testes-performance/relatorios/fumaca testes-performance/relatorios/carga
-          find artefatos/resultados-api -type f -exec cp {} entradas/api/ \; 2>/dev/null || true
-          find artefatos/resultados-web -type f -exec cp {} entradas/web/ \; 2>/dev/null || true
-          find artefatos/resultados-mobile -type f -exec cp {} entradas/mobile/ \; 2>/dev/null || true
-          find artefatos/resultados-performance -type f -exec cp {} testes-performance/relatorios/fumaca/ \; 2>/dev/null || true
-          find artefatos/resultados-performance-carga -type f -exec cp {} testes-performance/relatorios/carga/ \; 2>/dev/null || true
+          find artefatos/resultados-api -type f -path '*/allure-results/*' -exec cp {} entradas/api/ \;
+          find artefatos/resultados-web -type f -path '*/allure-results/*' -exec cp {} entradas/web/ \;
+          find artefatos/resultados-mobile -type f -path '*/allure-results/*' -exec cp {} entradas/mobile/ \;
+          find artefatos/resultados-performance -type f -name 'summary.*' -exec cp {} testes-performance/relatorios/fumaca/ \;
+          find artefatos/resultados-performance-carga -type f -name 'summary.*' -exec cp {} testes-performance/relatorios/carga/ \;
+          test -s testes-performance/relatorios/fumaca/summary.json
+          test -s testes-performance/relatorios/carga/summary.json
           npm run preparar -- --api entradas/api --web entradas/web --mobile entradas/mobile
-          if [ -f testes-performance/relatorios/fumaca/summary.json ]; then npm run converter-k6 -- --origem testes-performance/relatorios/fumaca --destino temporario --perfil Fumaca; fi
-          if [ -f testes-performance/relatorios/carga/summary.json ]; then npm run converter-k6 -- --origem testes-performance/relatorios/carga --destino temporario --perfil Carga; fi
+          npm run converter-k6 -- --origem testes-performance/relatorios/fumaca --destino temporario --perfil Fumaca
+          npm run converter-k6 -- --origem testes-performance/relatorios/carga --destino temporario --perfil Carga
+          test -f temporario/Fumaca-result.json
+          test -f temporario/Carga-result.json
           npm run gerar
         working-directory: relatorio-unificado
       - if: always()
@@ -199,6 +203,7 @@ jobs:
           test '${{ needs.testes-mobile.result }}' = success
           test '${{ needs.performance-fumaca.result }}' = success
           test '${{ needs.performance-carga.result }}' = success
+          test '${{ needs.relatorio-unificado.result }}' = success
 
   pages:
     if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'

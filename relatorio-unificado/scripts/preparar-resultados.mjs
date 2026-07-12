@@ -16,15 +16,14 @@ const modulos = [
   ['mobile', 'Mobile'],
 ];
 
-async function rotularResultados(pasta, modulo) {
-  const arquivos = await readdir(pasta);
+async function rotularResultados(pasta, modulo, arquivos) {
   await Promise.all(arquivos.filter((arquivo) => arquivo.endsWith('-result.json')).map(async (arquivo) => {
     const caminho = join(pasta, arquivo);
     const resultado = JSON.parse(await readFile(caminho, 'utf8'));
     resultado.labels = [
       { name: 'parentSuite', value: modulo },
       { name: 'module', value: modulo },
-      ...(resultado.labels || []).filter((label) => label.name !== 'parentSuite'),
+      ...(resultado.labels || []).filter((label) => !['parentSuite', 'module'].includes(label.name)),
     ];
     await writeFile(caminho, JSON.stringify(resultado), 'utf8');
   }));
@@ -39,8 +38,9 @@ for (const [chave, modulo] of modulos) {
   const pastaOrigem = resolve(origem);
   const pastaDestino = destino;
   try {
+    const arquivos = await readdir(pastaOrigem);
     await cp(pastaOrigem, pastaDestino, { recursive: true, errorOnExist: false });
-    await rotularResultados(pastaDestino, modulo);
+    await rotularResultados(pastaDestino, modulo, arquivos);
   } catch (erro) {
     if (erro.code !== 'ENOENT') throw erro;
   }
