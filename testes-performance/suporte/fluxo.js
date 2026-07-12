@@ -3,10 +3,10 @@ import { check } from 'k6';
 
 export function obterBaseUrl() {
   const baseUrl = __ENV.BASE_URL || 'http://localhost:3000';
-  const destino = new URL(baseUrl);
+  const destino = /^https?:\/\/([^/:]+)(?::\d+)?(?:\/|$)/.exec(baseUrl);
   const permitidos = ['localhost', '127.0.0.1', 'serverest'];
 
-  if (!permitidos.includes(destino.hostname)) {
+  if (!destino || !permitidos.includes(destino[1])) {
     throw new Error(`BASE_URL nao permitida: ${baseUrl}`);
   }
 
@@ -15,7 +15,7 @@ export function obterBaseUrl() {
 
 export function prepararAutenticacao(baseUrl) {
   const sufixo = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-  const email = `performance.${sufixo}@qa.local`;
+  const email = `performance.${sufixo}@qa.com`;
   const senha = 'teste';
   const usuario = http.post(`${baseUrl}/usuarios`, JSON.stringify({
     nome: `Usuario Performance ${sufixo}`,
@@ -26,7 +26,7 @@ export function prepararAutenticacao(baseUrl) {
 
   check(usuario, { 'preparo cria usuario': (resposta) => resposta.status === 201 });
 
-  return { email, senha };
+  return { email, password: senha };
 }
 
 export function executarFluxo(baseUrl, credenciais) {
