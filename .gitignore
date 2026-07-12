@@ -17,6 +17,7 @@ relatorios/web/*
 !relatorios/web/.gitkeep
 **/allure-results/
 **/allure-report/
+testes-mobile/.allure/
 **/cypress/videos/
 **/cypress/screenshots/
 testes-performance/relatorios/*
@@ -27,6 +28,7 @@ testes-performance/relatorios/*
 # Binarios mobile e configuracao local
 testes-mobile/apps/*
 !testes-mobile/apps/.gitkeep
+!testes-mobile/apps/checksums.txt
 testes-mobile/config/devices/local.yaml
 testes-mobile/config/capabilities/android.properties
 testes-mobile/.env

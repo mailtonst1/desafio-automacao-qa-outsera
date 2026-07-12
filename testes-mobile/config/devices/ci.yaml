@@ -2,4 +2,4 @@ deviceName: GitHubActionsEmulator
 platformName: Android
 platformVersion: "35"
 automationName: UiAutomator2
-appPath: testes-mobile/apps/my-demo-app-android.apk
+appPath: testes-mobile/apps/mda-2.2.0-25.apk

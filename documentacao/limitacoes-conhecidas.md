@@ -1,9 +1,8 @@
 # Limitacoes conhecidas
 
-- As suites de testes funcionais nao foram implementadas nesta fase.
 - Os workflows de CI/CD nao foram implementados nesta fase.
 - A execucao Mobile depende de Android SDK local, emulador, Appium e caminho valido para o APK.
-- O APK do Sauce Labs My Demo App Android nao e baixado nem versionado.
+- O APK do Sauce Labs My Demo App Android e baixado sob demanda e nao e versionado.
 - O bootstrap nao instala Docker, Android Studio ou Java e nao altera variaveis de ambiente do sistema silenciosamente.
 - A execução Linux/macOS do script de API requer `sh`, `curl`, Docker e Docker Compose disponíveis no ambiente. A validação sintática Bash depende de um shell POSIX no computador executor.
 - O relatório HTML é gerado sob demanda pela opção `GerarRelatorio`/`--gerar-relatorio`; os resultados Allure são sempre preservados no caminho de relatórios.
@@ -33,3 +32,8 @@ Em 10/07/2026, `npm audit` foi executado no modulo `testes-web-e2e` apos a criac
 | `uuid` | Moderada | Falta de verificacao de limites de buffer em funcoes v3/v5/v6. |
 
 Foi executado `npm audit fix --package-lock-only` sem `--force`; nenhuma vulnerabilidade foi resolvida. O npm informou que a correcao completa exigiria `cypress@15.18.1` e/ou `@badeball/cypress-cucumber-preprocessor@26.0.0`, o que representa atualizacao de versao principal e risco de incompatibilidade com a stack planejada. As vulnerabilidades permanecem registradas e devem ser reavaliadas antes da implementacao dos testes funcionais.
+
+## Mobile
+
+- A suite foi validada em emulador Android local; ela nao inicia nem encerra emuladores para evitar interferir em outros dispositivos.
+- O formulario de checkout da versao 2.2.0 exige nome completo e informa `Please provide your full name.` quando o campo permanece vazio.

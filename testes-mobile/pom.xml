@@ -12,6 +12,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.jupiter.version>5.11.4</junit.jupiter.version>
     <appium.java.client.version>9.4.0</appium.java.client.version>
+    <selenium.version>4.27.0</selenium.version>
     <allure.version>2.29.1</allure.version>
   </properties>
 
@@ -20,6 +21,12 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
+      <version>${selenium.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -44,10 +51,18 @@
         <version>3.5.2</version>
         <configuration>
           <useModulePath>false</useModulePath>
+          <includes>
+            <include>**/Teste*.java</include>
+          </includes>
           <systemPropertyVariables>
             <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
           </systemPropertyVariables>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>io.qameta.allure</groupId>
+        <artifactId>allure-maven</artifactId>
+        <version>2.15.2</version>
       </plugin>
     </plugins>
   </build>
