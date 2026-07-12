@@ -21,6 +21,7 @@ testes-mobile/.allure/
 **/cypress/videos/
 **/cypress/screenshots/
 testes-performance/relatorios/*
+testes-performance/relatorios/**
 !testes-performance/relatorios/.gitkeep
 !testes-performance/relatorios/*/
 !testes-performance/relatorios/*/.gitkeep
