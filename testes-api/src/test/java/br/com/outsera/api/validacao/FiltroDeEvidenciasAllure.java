@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 public class FiltroDeEvidenciasAllure implements Filter {
     private static final Pattern TOKEN_NO_CORPO = Pattern.compile("(\\\"authorization\\\"\\s*:\\s*\\\")[^\\\"]+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SENHA_NO_CORPO = Pattern.compile("(\\\"password\\\"\\s*:\\s*\\\")[^\\\"]+", Pattern.CASE_INSENSITIVE);
 
     @Override
     public Response filter(
@@ -41,6 +42,7 @@ public class FiltroDeEvidenciasAllure implements Filter {
     }
 
     private String sanitizar(String conteudo) {
-        return TOKEN_NO_CORPO.matcher(conteudo).replaceAll("$1***");
+        String semToken = TOKEN_NO_CORPO.matcher(conteudo).replaceAll("$1***");
+        return SENHA_NO_CORPO.matcher(semToken).replaceAll("$1***");
     }
 }

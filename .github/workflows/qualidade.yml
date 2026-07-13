@@ -183,6 +183,11 @@ jobs:
           test -f temporario/Fumaca-result.json
           test -f temporario/Carga-result.json
           npm run gerar
+          npm run preparar-publicacao -- --fumaca testes-performance/relatorios/fumaca --carga testes-performance/relatorios/carga
+          test -f saida/index.html
+          test -f saida/allure/index.html
+          test -f saida/performance/fumaca.html
+          test -f saida/performance/carga.html
         working-directory: relatorio-unificado
       - if: always()
         uses: actions/upload-artifact@v4
