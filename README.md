@@ -2,6 +2,14 @@
 
 Monorepo de qualidade com suites independentes de API, Web E2E, Mobile Android e Performance. A pipeline publica o [relatorio Allure unificado](https://mailtonst1.github.io/desafio-automacao-qa-outsera/) apos uma execucao verde na `main`.
 
+## Acesso rapido
+
+- [Portal de evidencias](https://mailtonst1.github.io/desafio-automacao-qa-outsera/)
+- [Relatorio Allure unificado](https://mailtonst1.github.io/desafio-automacao-qa-outsera/allure/)
+- [Performance - fumaca](https://mailtonst1.github.io/desafio-automacao-qa-outsera/performance/fumaca/)
+- [Performance - carga](https://mailtonst1.github.io/desafio-automacao-qa-outsera/performance/carga/)
+- [GitHub Actions](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions)
+
 ## Resultado validado
 
 O ultimo ciclo completo aprovado executou 58 testes funcionais: 43 API, 7 Web E2E e 6 Mobile. Performance tambem executa fumaca (5 VUs, 30 s) e carga (ramp-up de 1 minuto, 500 VUs por 5 minutos, ramp-down de 1 minuto). Os jobs sao separados e o quality gate exige sucesso de todos eles e do relatorio unificado.
