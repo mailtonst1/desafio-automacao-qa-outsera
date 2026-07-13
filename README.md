@@ -2,6 +2,8 @@
 
 Monorepo de qualidade com suites independentes de API, Web E2E, Mobile Android e Performance. A pipeline publica o [relatorio Allure unificado](https://mailtonst1.github.io/desafio-automacao-qa-outsera/) apos uma execucao verde na `main`.
 
+[![Qualidade](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions/workflows/qualidade.yml/badge.svg)](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions/workflows/qualidade.yml)
+
 ## Acesso rapido
 
 - [Portal de evidencias](https://mailtonst1.github.io/desafio-automacao-qa-outsera/)
@@ -13,6 +15,31 @@ Monorepo de qualidade com suites independentes de API, Web E2E, Mobile Android e
 ## Resultado validado
 
 O ultimo ciclo completo aprovado executou 58 testes funcionais: 43 API, 7 Web E2E e 6 Mobile. Performance tambem executa fumaca (5 VUs, 30 s) e carga (ramp-up de 1 minuto, 500 VUs por 5 minutos, ramp-down de 1 minuto). Os jobs sao separados e o quality gate exige sucesso de todos eles e do relatorio unificado.
+
+## Inicio rapido
+
+```powershell
+git clone https://github.com/mailtonst1/desafio-automacao-qa-outsera.git
+cd desafio-automacao-qa-outsera
+.\scripts\doctor.ps1
+.\scripts\bootstrap.ps1
+.\scripts\executar-api.ps1 -Perfil smoke
+.\scripts\executar-web.ps1 smoke
+.\scripts\executar-mobile.ps1
+.\scripts\executar-performance.ps1 -Perfil fumaca
+```
+
+Em Linux/macOS use `./scripts/doctor.sh`, `./scripts/bootstrap.sh` e as variantes `.sh`. O bootstrap instala dependencias do projeto e cria arquivos locais de exemplo; ele nao instala Docker, Java, Android SDK ou outras ferramentas do sistema.
+
+## Pipeline e documentacao
+
+Push, pull request e `workflow_dispatch` acionam a pipeline. API, Web, Mobile, fumaça e carga executam em paralelo; o quality gate exige todos os jobs e o relatório unificado aprovados. Logs e artifacts ficam em [GitHub Actions](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions). O Pages e atualizado em push para `main`.
+
+- [Documentacao dos testes de API](testes-api/README.md)
+- [Documentacao dos testes Web E2E](testes-web-e2e/README.md)
+- [Documentacao dos testes Mobile](testes-mobile/README.md)
+- [Documentacao dos testes de Performance](testes-performance/README.md)
+- [Documentacao do relatorio unificado](relatorio-unificado/README.md)
 
 ## Modulos
 

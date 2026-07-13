@@ -46,3 +46,11 @@ O script valida o APK, exige um dispositivo Android conectado, inicia o Appium a
 ## Limitacoes
 
 A execucao requer infraestrutura Android local. O cenario negativo do checkout valida a mensagem real da versao 2.2.0: `Please provide your full name.`
+
+## Arquitetura, evidencias e CI
+
+`configuracao` le ambiente e capabilities; `driver` cria/encerra a sessao; `tela` aplica Screen Object; `fabrica` centraliza dados; `fluxo` compoe jornadas; `evidencia` anexa screenshot e dispositivo ao final e, em falha, page source, logcat e Appium log. Cada teste cria sua propria sessao.
+
+O job `testes-mobile` usa Ubuntu com KVM, emulador API 34 x86_64 em 1080x2400/densidade 420, instala o APK e executa Appium 3.1.2 com UiAutomator2 6.7.9. Localmente, a configuracao pode usar `APPIUM_HOST`, `APPIUM_PORT`, `APP_PATH`, `DEVICE_NAME`, `PLATFORM_VERSION`, `UDID`, `NO_RESET` e `FULL_RESET`.
+
+Para `device not found`, confira `adb devices`; para APK ausente, rode o script de download; para Appium indisponivel, confirme a porta 4723 e `appium driver list --installed`; para timeout, confira versao/package/activity e os logs em `target/`. Resultados ficam em `target/allure-results`, Surefire em `target/surefire-reports` e o HTML Maven em `target/site/allure-maven-plugin`.
