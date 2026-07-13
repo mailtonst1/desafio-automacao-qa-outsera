@@ -174,9 +174,13 @@ jobs:
           find ../artefatos/resultados-web -type f -path '*/allure-results/*' -exec cp {} entradas/web/ \;
           find ../artefatos/resultados-mobile -type f -path '*/allure-results/*' -exec cp {} entradas/mobile/ \;
           find ../artefatos/resultados-performance -type f -name 'summary.*' -exec cp {} testes-performance/relatorios/fumaca/ \;
+          find ../artefatos/resultados-performance -type f -name 'dashboard.html' -exec cp {} testes-performance/relatorios/fumaca/ \;
           find ../artefatos/resultados-performance-carga -type f -name 'summary.*' -exec cp {} testes-performance/relatorios/carga/ \;
+          find ../artefatos/resultados-performance-carga -type f -name 'dashboard.html' -exec cp {} testes-performance/relatorios/carga/ \;
           test -s testes-performance/relatorios/fumaca/summary.json
           test -s testes-performance/relatorios/carga/summary.json
+          test -s testes-performance/relatorios/fumaca/dashboard.html
+          test -s testes-performance/relatorios/carga/dashboard.html
           npm run preparar -- --api entradas/api --web entradas/web --mobile entradas/mobile
           npm run converter-k6 -- --origem testes-performance/relatorios/fumaca --destino temporario --perfil Fumaca
           npm run converter-k6 -- --origem testes-performance/relatorios/carga --destino temporario --perfil Carga
@@ -186,8 +190,8 @@ jobs:
           npm run preparar-publicacao -- --fumaca testes-performance/relatorios/fumaca --carga testes-performance/relatorios/carga
           test -f saida/index.html
           test -f saida/allure/index.html
-          test -f saida/performance/fumaca.html
-          test -f saida/performance/carga.html
+          test -f saida/performance/fumaca/index.html
+          test -f saida/performance/carga/index.html
         working-directory: relatorio-unificado
       - if: always()
         uses: actions/upload-artifact@v4
