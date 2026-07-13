@@ -1,6 +1,6 @@
 # Relatorio Unificado
 
-Este modulo recebe os resultados Allure de API, Web e Mobile e converte os resumos k6 de fumaca e carga em resultados Allure. O HTML final e uma entrada estatica para GitHub Pages: `index.html` aponta para `allure/index.html` e para os dois relatorios de performance.
+Este modulo recebe os resultados Allure de API, Web e Mobile e converte os resumos k6 de fumaca e carga em resultados Allure. O Allure permanece consolidando todos os modulos. A entrada estatica do Pages aponta para `allure/index.html` e para os dashboards oficiais k6 em `performance/fumaca/index.html` e `performance/carga/index.html`; JSON e TXT continuam como evidencias tecnicas.
 
 ## Execucao
 

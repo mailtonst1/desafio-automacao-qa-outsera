@@ -18,6 +18,11 @@ services:
     environment:
       BASE_URL: http://serverest:3000
       DIRETORIO_RELATORIOS: relatorios/fumaca
+      K6_WEB_DASHBOARD: "true"
+      K6_WEB_DASHBOARD_EXPORT: relatorios/fumaca/dashboard.html
+      K6_WEB_DASHBOARD_OPEN: "false"
+      K6_WEB_DASHBOARD_PORT: "-1"
+      K6_WEB_DASHBOARD_PERIOD: 5s
       GERAR_RELATORIO: "false"
     depends_on:
       serverest:
@@ -72,6 +77,11 @@ services:
     environment:
       BASE_URL: http://serverest:3000
       DIRETORIO_RELATORIOS: relatorios/fumaca
+      K6_WEB_DASHBOARD: "true"
+      K6_WEB_DASHBOARD_OPEN: "false"
+      K6_WEB_DASHBOARD_PORT: "-1"
+      K6_WEB_DASHBOARD_PERIOD: 1s
+      K6_WEB_DASHBOARD_EXPORT: /scripts/relatorios/fumaca/dashboard.html
     depends_on:
       serverest:
         condition: service_healthy
@@ -87,6 +97,11 @@ services:
     environment:
       BASE_URL: http://serverest:3000
       DIRETORIO_RELATORIOS: relatorios/carga
+      K6_WEB_DASHBOARD: "true"
+      K6_WEB_DASHBOARD_EXPORT: /scripts/relatorios/carga/dashboard.html
+      K6_WEB_DASHBOARD_OPEN: "false"
+      K6_WEB_DASHBOARD_PORT: "-1"
+      K6_WEB_DASHBOARD_PERIOD: 5s
     depends_on:
       serverest:
         condition: service_healthy
