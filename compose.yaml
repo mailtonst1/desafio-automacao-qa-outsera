@@ -17,12 +17,6 @@ services:
       context: ./testes-api
     environment:
       BASE_URL: http://serverest:3000
-      DIRETORIO_RELATORIOS: relatorios/fumaca
-      K6_WEB_DASHBOARD: "true"
-      K6_WEB_DASHBOARD_EXPORT: relatorios/fumaca/dashboard.html
-      K6_WEB_DASHBOARD_OPEN: "false"
-      K6_WEB_DASHBOARD_PORT: "-1"
-      K6_WEB_DASHBOARD_PERIOD: 5s
       GERAR_RELATORIO: "false"
     depends_on:
       serverest:
