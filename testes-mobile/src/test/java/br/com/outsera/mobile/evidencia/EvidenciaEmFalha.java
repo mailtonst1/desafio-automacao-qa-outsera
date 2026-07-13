@@ -3,7 +3,7 @@ package br.com.outsera.mobile.evidencia;
 import io.appium.java_client.android.AndroidDriver;
 import io.qameta.allure.Allure;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.TestWatcher;
+import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.openqa.selenium.OutputType;
 
 import java.io.ByteArrayInputStream;
@@ -14,26 +14,27 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public final class EvidenciaEmFalha implements TestWatcher {
+public final class EvidenciaEmFalha implements TestExecutionExceptionHandler {
     private final Supplier<AndroidDriver> fornecedor;
     public EvidenciaEmFalha(Supplier<AndroidDriver> fornecedor) { this.fornecedor = fornecedor; }
 
-    @Override
-    public void testSuccessful(ExtensionContext contexto) {
-        anexarEstadoFinal(contexto, "Estado final");
+    public void anexarEstadoFinal(String nomeDoTeste) {
+        anexarEstadoFinal(nomeDoTeste, "Estado final");
     }
 
     @Override
-    public void testFailed(ExtensionContext contexto, Throwable causa) {
-        anexarEstadoFinal(contexto, "Estado em falha");
-        anexarArquivo("Appium log - " + contexto.getDisplayName(), Path.of("target", "appium.log"));
-        anexarLogcat(contexto);
+    public void handleTestExecutionException(ExtensionContext contexto, Throwable causa) throws Throwable {
+        String nomeDoTeste = contexto.getDisplayName();
+        anexarEstadoFinal(nomeDoTeste, "Estado em falha");
+        anexarArquivo("Appium log - " + nomeDoTeste, Path.of("target", "appium.log"));
+        anexarLogcat(nomeDoTeste);
+        throw causa;
     }
 
-    private void anexarEstadoFinal(ExtensionContext contexto, String etapa) {
+    private void anexarEstadoFinal(String nomeDoTeste, String etapa) {
         AndroidDriver driver = fornecedor.get();
         if (driver == null) return;
-        String nome = etapa + " - " + contexto.getDisplayName();
+        String nome = etapa + " - " + nomeDoTeste;
         Allure.addAttachment("Screenshot - " + nome, "image/png", new ByteArrayInputStream(driver.getScreenshotAs(OutputType.BYTES)), ".png");
         Allure.addAttachment("Tela e dispositivo - " + nome, "text/plain", descricaoDoDispositivo(driver));
         if (etapa.equals("Estado em falha")) {
@@ -49,18 +50,18 @@ public final class EvidenciaEmFalha implements TestWatcher {
                 + "currentPackage=" + driver.getCurrentPackage();
     }
 
-    private void anexarLogcat(ExtensionContext contexto) {
+    private void anexarLogcat(String nomeDoTeste) {
         try {
             Process processo = new ProcessBuilder("adb", "logcat", "-d", "-t", "400")
                     .redirectErrorStream(true)
                     .start();
             processo.waitFor(10, TimeUnit.SECONDS);
-            Allure.addAttachment("Logcat - " + contexto.getDisplayName(), "text/plain", new String(processo.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
+            Allure.addAttachment("Logcat - " + nomeDoTeste, "text/plain", new String(processo.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
         } catch (InterruptedException excecao) {
             Thread.currentThread().interrupt();
-            Allure.addAttachment("Logcat indisponivel - " + contexto.getDisplayName(), "text/plain", excecao.toString());
+            Allure.addAttachment("Logcat indisponivel - " + nomeDoTeste, "text/plain", excecao.toString());
         } catch (IOException excecao) {
-            Allure.addAttachment("Logcat indisponivel - " + contexto.getDisplayName(), "text/plain", excecao.toString());
+            Allure.addAttachment("Logcat indisponivel - " + nomeDoTeste, "text/plain", excecao.toString());
         }
     }
 
