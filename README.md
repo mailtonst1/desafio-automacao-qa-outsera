@@ -41,6 +41,10 @@ Push, pull request e `workflow_dispatch` acionam a pipeline. API, Web, Mobile, f
 - [Documentacao dos testes de Performance](testes-performance/README.md)
 - [Documentacao do relatorio unificado](relatorio-unificado/README.md)
 
+## Reprodutibilidade local
+
+As suites API, Web e Performance foram executadas a partir de clone limpo, sem artifacts, `.env`, APK ou massas reaproveitados. API e Web passaram em duas execucoes consecutivas; Performance recria sua credencial no `setup`. Mobile exige Android SDK, Appium e um dispositivo/emulador conectado, por isso sua execucao local depende dessa infraestrutura externa e nao de segredo ou arquivo do GitHub Actions.
+
 ## Modulos
 
 | Modulo | Escopo | Comando principal |
