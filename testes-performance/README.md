@@ -29,7 +29,7 @@ No shell POSIX:
 
 Os thresholds iniciais sao taxa de falha HTTP menor que 1%, checks acima de 99% e p95 menor que 1000 ms. Use `LIMITE_FALHAS_HTTP`, `LIMITE_CHECKS` e `LIMITE_P95_MS` apenas para sobrescrever o ambiente de avaliacao.
 
-O Web Dashboard oficial do k6 0.56.0 gera `dashboard.html` autocontido, com graficos ao longo do tempo, thresholds e percentis. Os arquivos `summary.json`, `summary.txt` e `summary.html` permanecem como evidencias tecnicas em `relatorios/`; todos sao ignorados pelo Git e publicados como artifacts. O Pages publica os dashboards de [fumaca](https://mailtonst1.github.io/desafio-automacao-qa-outsera/performance/fumaca/) e [carga](https://mailtonst1.github.io/desafio-automacao-qa-outsera/performance/carga/).
+O Web Dashboard oficial do k6 0.56.0 gera `dashboard.html` autocontido, com graficos ao longo do tempo, thresholds e percentis. Os arquivos `summary.json`, `summary.txt` e `summary.html` permanecem como evidencias tecnicas em `relatorios/fumaca/` ou `relatorios/carga/`; os scripts exibem o resumo do perfil recem-executado. Todos sao ignorados pelo Git e publicados como artifacts. O Pages publica os dashboards de [fumaca](https://mailtonst1.github.io/desafio-automacao-qa-outsera/performance/fumaca/) e [carga](https://mailtonst1.github.io/desafio-automacao-qa-outsera/performance/carga/).
 
 ## Arquitetura e interpretacao
 

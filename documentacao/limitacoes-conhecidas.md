@@ -1,6 +1,6 @@
 # Limitacoes conhecidas
 
-- Os workflows de CI/CD nao foram implementados nesta fase.
+- Os workflows de qualidade e carga estao implementados no GitHub Actions; a publicacao do Pages depende da configuracao do repositorio.
 - A execucao Mobile depende de Android SDK local, emulador, Appium e caminho valido para o APK.
 - O APK do Sauce Labs My Demo App Android e baixado sob demanda e nao e versionado.
 - O bootstrap nao instala Docker, Android Studio ou Java e nao altera variaveis de ambiente do sistema silenciosamente.
@@ -15,6 +15,7 @@ Em 10/07/2026, `npm audit` foi executado no modulo `testes-web-e2e` apos a criac
 
 - A Automation Exercise usa validacao HTML nativa nos campos obrigatorios de login e pagamento; os cenarios negativos verificam essa validacao sem depender de mensagem localizada do navegador.
 - O formulario de pagamento aceita o numero informado. Nao ha validacao real de cartao invalido, portanto esse cenario nao foi criado.
+- Em 17/07/2026, os testes axe de login, catalogo, carrinho e checkout reprovaram por violacoes `serious` e `critical` do alvo externo. Foram observados contraste insuficiente, botoes sem nome acessivel e campo sem rotulo; essas regras permanecem bloqueantes e registradas no Allure.
 
 | Pacote afetado | Severidade | Origem ou impacto reportado |
 | --- | --- | --- |
