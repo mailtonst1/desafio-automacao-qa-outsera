@@ -4,7 +4,7 @@
 | --- | ---: | --- | --- |
 | API | 43 casos JUnit | ServeRest: autenticacao, usuarios, produtos, carrinhos, schemas e headers de seguranca | Implementado e executado; 43 aprovados em 17/07/2026 |
 | Web E2E | 11 cenarios Gherkin | Automation Exercise: autenticacao, carrinho, checkout e acessibilidade de login, catalogo, carrinho e checkout | Implementado; 4 cenarios de acessibilidade executados e reprovados em 17/07/2026 por violacoes do alvo |
-| Mobile | 6 casos JUnit | My Demo App Android: catalogo, login, produto e formulario de checkout | Implementado; nao executado em 17/07/2026 por ausencia de dispositivo Android conectado |
+| Mobile | 6 casos JUnit | My Demo App Android: catalogo, login, produto e formulario de checkout | Implementado; aprovado no CI em 17/07/2026 e nao executado localmente por ausencia de dispositivo Android conectado |
 | Performance | 2 perfis k6 | ServeRest: criacao de usuario no setup, login, listagem de produtos e consulta de produto | Implementado e executado; fumaca e carga aprovados em 17/07/2026 |
 
 O total funcional implementado e 60: 43 API, 11 Web E2E e 6 Mobile. Os dois perfis k6 nao entram nessa soma porque representam execucoes de performance, nao casos funcionais. Implementado indica existencia no codigo; executado e aprovado ou reprovado descrevem o ultimo resultado conhecido; dependente de ambiente indica que a execucao nao foi confirmada na estacao atual.
