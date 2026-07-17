@@ -69,6 +69,10 @@ jobs:
         working-directory: testes-web-e2e
       - run: npx cypress install
         working-directory: testes-web-e2e
+      - run: npm run typecheck
+        working-directory: testes-web-e2e
+      - run: npm run lint
+        working-directory: testes-web-e2e
       - run: npm run regressao
         working-directory: testes-web-e2e
       - if: always()
