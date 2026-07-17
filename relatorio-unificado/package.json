@@ -2,10 +2,12 @@
   "name": "relatorio-unificado",
   "version": "1.0.0",
   "scripts": {
+    "test": "node --test",
     "preparar": "node scripts/preparar-resultados.mjs",
     "converter-k6": "node scripts/converter-k6.mjs",
     "gerar": "allure generate temporario --output saida",
-    "preparar-publicacao": "node scripts/preparar-publicacao.mjs"
+    "preparar-publicacao": "node scripts/preparar-publicacao.mjs",
+    "validar-portal": "node scripts/validar-portal.mjs"
   },
   "keywords": [],
   "author": "",
