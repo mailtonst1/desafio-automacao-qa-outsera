@@ -65,17 +65,23 @@ jobs:
           node-version: '20.19.5'
           cache: npm
           cache-dependency-path: testes-web-e2e/package-lock.json
-      - run: npm ci
+      - name: Instalar dependências Web
+        run: npm ci
         working-directory: testes-web-e2e
-      - run: npx cypress install
+      - name: Instalar Cypress
+        run: npx cypress install
         working-directory: testes-web-e2e
-      - run: npm run typecheck
+      - name: Validar tipos do projeto Web
+        run: npm run typecheck
         working-directory: testes-web-e2e
-      - run: npm run lint
+      - name: Executar análise estática com ESLint
+        run: npm run lint
         working-directory: testes-web-e2e
-      - run: npm run regressao
+      - name: Executar regressão Web e acessibilidade
+        run: npm run regressao
         working-directory: testes-web-e2e
-      - if: always()
+      - name: Publicar evidências Web
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: resultados-web
@@ -171,8 +177,14 @@ jobs:
           pattern: resultados-*
           path: artefatos
           merge-multiple: false
-      - run: |
+      - name: Gerar e validar relatório unificado
+        env:
+          PORTAL_PR_NUMBER: ${{ github.event.pull_request.number }}
+          PORTAL_HEAD_REF: ${{ github.head_ref }}
+          PORTAL_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
           npm ci
+          npm test
           mkdir -p entradas/api entradas/web entradas/mobile testes-performance/relatorios/fumaca testes-performance/relatorios/carga
           find ../artefatos/resultados-api -type f -path '*/allure-results/*' -exec cp {} entradas/api/ \;
           find ../artefatos/resultados-web -type f -path '*/allure-results/*' -exec cp {} entradas/web/ \;
@@ -192,6 +204,7 @@ jobs:
           test -f temporario/Carga-result.json
           npm run gerar
           npm run preparar-publicacao -- --fumaca testes-performance/relatorios/fumaca --carga testes-performance/relatorios/carga
+          npm run validar-portal
           test -f saida/index.html
           test -f saida/allure/index.html
           test -f saida/performance/fumaca/index.html
