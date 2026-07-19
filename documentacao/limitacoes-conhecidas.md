@@ -7,9 +7,20 @@
 - A execução Linux/macOS do script de API requer `sh`, `curl`, Docker e Docker Compose disponíveis no ambiente. A validação sintática Bash depende de um shell POSIX no computador executor.
 - O relatório HTML é gerado sob demanda pela opção `GerarRelatorio`/`--gerar-relatorio`; os resultados Allure são sempre preservados no caminho de relatórios.
 
-## Vulnerabilidades transitivas do npm
+## Vulnerabilidades do toolchain npm
 
-Em 10/07/2026, `npm audit` foi executado no modulo `testes-web-e2e` apos a criacao do `package-lock.json`. O resultado real foi de 12 vulnerabilidades transitivas: 1 baixa, 10 moderadas, 1 alta e nenhuma critica.
+Em 19/07/2026, `npm audit` e `npm audit --omit=dev` foram executados separadamente em `testes-web-e2e` e `relatorio-unificado`. Os dois audits sem dependencias de desenvolvimento retornaram zero vulnerabilidades, portanto nao ha dependencia de runtime afetada. O projeto usa esses pacotes somente para executar testes e gerar relatorios em ambiente controlado de CI.
+
+| Modulo | Pacote afetado | Severidade | Classificacao | Correcao informada pelo npm | Risco real neste projeto |
+| --- | --- | --- | --- | --- | --- |
+| Web E2E | `serialize-javascript` | Alta | Desenvolvimento, transitiva via Mocha | Atualizacoes transitivas nao aplicadas pelo `npm audit fix --dry-run`; a resolucao completa exige major do Cypress/preprocessador | A exploracao exige objetos manipulados durante a execucao local do runner; o pacote nao compoe aplicacao publicada nem recebe trafego de producao. |
+| Web E2E | `cypress` | Moderada | Desenvolvimento, direta | `cypress@15.18.1`, versao principal posterior a 14.0.1 | A mudanca principal pode quebrar plugins, configuracao e reporter; deve ser tratada em atualizacao dedicada da stack. |
+| Web E2E | `@badeball/cypress-cucumber-preprocessor` | Moderada | Desenvolvimento, direta | `26.0.0`, versao principal posterior a 22.0.1 | A mudanca principal pode alterar integracao, bundler e descoberta de steps. |
+| Web E2E | Cucumber, `@cypress/request`, `diff`, `mocha`, `qs` e `uuid` | Baixa/Moderada | Desenvolvimento, transitiva | Vinculada aos majors do Cypress/preprocessador; nenhuma alteracao segura no dry-run | Exposicao limitada ao processamento de testes e fixtures controladas no runner. |
+| Relatorio | `allure` | Alta | Desenvolvimento, direta | O npm sugere `allure@0.0.0` como mudanca principal, que e downgrade invalido para a geracao atual | Usado apenas para consolidar artifacts produzidos pela propria pipeline; nao faz parte do portal em runtime. |
+| Relatorio | `adm-zip` | Alta | Desenvolvimento, transitiva via Allure | Sem atualizacao segura independente; vinculada ao downgrade principal do Allure | O risco de alocacao excessiva depende de ZIP malicioso; a pipeline processa somente artifacts do mesmo run e repositorio. |
+
+O `npm audit fix --dry-run` do Web informou zero pacotes alterados. Nao foi usado `npm audit fix --force`: as alternativas oferecidas incluem breaking changes na stack de testes ou downgrade invalido do gerador, com risco maior do que a exposicao residual do toolchain. As dependencias devem ser reavaliadas em uma atualizacao dedicada, com regressao completa.
 
 ## Web E2E
 
@@ -31,8 +42,6 @@ Em 10/07/2026, `npm audit` foi executado no modulo `testes-web-e2e` apos a criac
 | `qs` | Moderada | DoS acionavel remotamente em combinacao especifica de serializacao. |
 | `serialize-javascript` | Alta | RCE por propriedades de RegExp/data e exaustao de CPU. |
 | `uuid` | Moderada | Falta de verificacao de limites de buffer em funcoes v3/v5/v6. |
-
-Foi executado `npm audit fix --package-lock-only` sem `--force`; nenhuma vulnerabilidade foi resolvida. O npm informou que a correcao completa exigiria `cypress@15.18.1` e/ou `@badeball/cypress-cucumber-preprocessor@26.0.0`, o que representa atualizacao de versao principal e risco de incompatibilidade com a stack planejada. As vulnerabilidades permanecem registradas e devem ser reavaliadas antes da implementacao dos testes funcionais.
 
 ## Mobile
 
