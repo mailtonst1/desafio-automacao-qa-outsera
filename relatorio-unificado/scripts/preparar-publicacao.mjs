@@ -2,6 +2,7 @@ import { cp, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import {
   carregarResultados,
+  criarDadosPortal,
   gerarHtmlPortal,
   obterRastreabilidade,
   resumirAcessibilidade,
@@ -30,6 +31,13 @@ const resultadosAllure = await carregarResultados(resultados);
 const modulos = resumirModulos(resultadosAllure);
 const acessibilidade = await resumirAcessibilidade(resultadosAllure, resultados);
 const rastreabilidade = obterRastreabilidade(process.env);
+const portal = criarDadosPortal({
+  resumo,
+  modulos,
+  acessibilidade,
+  rastreabilidade,
+  data: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+});
 
 await mkdir(allure, { recursive: true });
 await mkdir(performance, { recursive: true });
@@ -43,10 +51,5 @@ for (const [origem, destino] of [[fumaca, 'fumaca'], [carga, 'carga']]) {
   await cp(join(origem, 'dashboard.html'), join(performance, destino, 'index.html'));
 }
 
-await writeFile(join(saida, 'index.html'), gerarHtmlPortal({
-  resumo,
-  modulos,
-  acessibilidade,
-  rastreabilidade,
-  data: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-}), 'utf8');
+await writeFile(join(saida, 'portal.json'), JSON.stringify(portal, null, 2), 'utf8');
+await writeFile(join(saida, 'index.html'), gerarHtmlPortal(portal), 'utf8');
