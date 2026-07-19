@@ -28,4 +28,4 @@ Os jobs publicam `resultados-api`, `resultados-web`, `resultados-mobile`, `resul
 
 ## Pages
 
-Em pushes para `main`, o workflow tenta publicar o artifact no GitHub Pages sem bloquear o quality gate. A disponibilidade depende de Pages estar habilitado no repositorio; nenhuma URL e presumida pelo projeto.
+Em pushes para `main`, o workflow publica o artifact no GitHub Pages quando o job `relatorio-unificado` conclui com sucesso. A publicacao independe do resultado funcional: um portal bloqueado continua sendo publicado para expor com fidelidade as falhas do quality gate. O job Pages nao usa `continue-on-error`; falhas tecnicas de configuracao, upload ou deploy permanecem visiveis na execucao. Em pull requests, o artifact e gerado e auditavel, mas o Pages nao e publicado.
