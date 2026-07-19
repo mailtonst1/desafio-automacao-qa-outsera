@@ -1,6 +1,6 @@
 # Desafio de Automacao QA Outsera
 
-Monorepo de qualidade com suites independentes de API, Web E2E, Mobile Android e Performance. A pipeline publica o [relatorio Allure unificado](https://mailtonst1.github.io/desafio-automacao-qa-outsera/) apos uma execucao verde na `main`.
+Monorepo de qualidade com suites independentes de API, Web E2E, Mobile Android e Performance. A pipeline publica o [portal de evidencias](https://mailtonst1.github.io/desafio-automacao-qa-outsera/) com o status real da execucao na `main`, inclusive quando o quality gate permanece bloqueado.
 
 [![Qualidade](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions/workflows/qualidade.yml/badge.svg)](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions/workflows/qualidade.yml)
 
@@ -12,9 +12,18 @@ Monorepo de qualidade com suites independentes de API, Web E2E, Mobile Android e
 - [Performance - carga](https://mailtonst1.github.io/desafio-automacao-qa-outsera/performance/carga/)
 - [GitHub Actions](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions)
 
+## Relatorio publico de execucao
+
+O [portal publico de evidencias](https://mailtonst1.github.io/desafio-automacao-qa-outsera/) exibe **BLOQUEADO POR ACESSIBILIDADE**. A automacao foi validada, mas o quality gate do alvo externo permanece bloqueado por quatro cenarios Web reprovados: Login, Catalogo, Carrinho e Checkout. Foram encontradas as regras `button-name` (`critical`), `color-contrast` (`serious`) e `label` (`critical`), com multiplas violacoes entre os cenarios.
+
+- [Execucao validada na `main` (run 29700104191)](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions/runs/29700104191)
+- [Relatorio Allure unificado](https://mailtonst1.github.io/desafio-automacao-qa-outsera/allure/)
+- [Dashboard k6 de fumaca](https://mailtonst1.github.io/desafio-automacao-qa-outsera/performance/fumaca/)
+- [Dashboard k6 de carga](https://mailtonst1.github.io/desafio-automacao-qa-outsera/performance/carga/)
+
 ## Resultado validado
 
-O repositorio possui 60 testes funcionais implementados: 43 API, 11 Web E2E e 6 Mobile. Os quatro novos testes Web de acessibilidade foram executados em 17/07/2026 e reprovaram por violacoes `serious` e `critical` do alvo externo; por isso 56 testes compunham o ultimo ciclo funcional aprovado. Performance possui dois perfis k6: fumaca (5 VUs, 30 s) e carga (ramp-up de 1 minuto, 500 VUs por 5 minutos, ramp-down de 1 minuto). Os jobs sao separados e o quality gate exige sucesso de todos eles e do relatorio unificado.
+O repositorio possui 60 testes funcionais implementados: 43 API, 11 Web E2E e 6 Mobile. Na execucao validada de 19/07/2026, API permaneceu 43/43, os sete cenarios funcionais Web passaram, Mobile permaneceu 6/6 e os dois perfis de Performance passaram. Os quatro cenarios Web de acessibilidade reprovaram por violacoes `serious` e `critical` do alvo externo; portanto, o consolidado real e de 62 resultados, com 58 aprovados e 4 reprovados.
 
 ## Inicio rapido
 
