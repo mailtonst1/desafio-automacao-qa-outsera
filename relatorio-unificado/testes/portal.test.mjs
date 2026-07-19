@@ -57,6 +57,7 @@ test('classifica quatro falhas exclusivas de acessibilidade', () => {
   });
 
   assert.equal(portal.status.texto, 'BLOQUEADO POR ACESSIBILIDADE');
+  assert.ok(!html.includes('>APROVADO<'));
   validar({
     resumo: resumoAcessibilidade,
     modulos: modulosComFalhasDeAcessibilidade,
@@ -77,6 +78,7 @@ test('classifica falha de API como bloqueio de qualidade', () => {
   const { portal, html } = montarPortal({ resumo, modulos, acessibilidadeAtual: semAcessibilidade });
 
   assert.equal(portal.status.texto, 'BLOQUEADO POR FALHAS DE QUALIDADE');
+  assert.ok(!html.includes('>APROVADO<'));
   validar({ resumo, modulos, acessibilidadeAtual: semAcessibilidade, portal, html });
 });
 
@@ -91,7 +93,91 @@ test('classifica todos os modulos aprovados', () => {
   const { portal, html } = montarPortal({ resumo, modulos, acessibilidadeAtual: semAcessibilidade });
 
   assert.equal(portal.status.texto, 'APROVADO');
+  assert.ok(!html.includes('>BLOQUEADO POR ACESSIBILIDADE<'));
+  assert.ok(!html.includes('>BLOQUEADO POR FALHAS DE QUALIDADE<'));
   validar({ resumo, modulos, acessibilidadeAtual: semAcessibilidade, portal, html });
+});
+
+test('renderiza landmarks, navegacao e links tecnicos do dashboard', () => {
+  const { html } = montarPortal({
+    resumo: resumoAcessibilidade,
+    modulos: modulosComFalhasDeAcessibilidade,
+    acessibilidadeAtual: acessibilidade,
+  });
+
+  for (const landmark of ['header', 'nav', 'main', 'footer']) {
+    assert.match(html, new RegExp(`<${landmark}\\b`, 'i'));
+  }
+
+  const header = html.match(/<header\b[\s\S]*?<\/header>/i)?.[0];
+  assert.ok(header, 'Header não encontrado para validar a navegação.');
+  for (const link of [
+    '#visao-geral',
+    './allure/',
+    './performance/fumaca/',
+    './performance/carga/',
+    rastreabilidade.urlWorkflow,
+    rastreabilidade.urlRepositorio,
+  ]) {
+    assert.ok(header.includes(`href="${link}"`), `Link ausente no header: ${link}`);
+  }
+
+  assert.ok(html.includes('href="https://mailtonascimento.com"'));
+  assert.match(html, /<nav\b[^>]*aria-label="Navegação principal"/);
+  assert.match(html, /aria-label="Desenvolvido por Mailton Nascimento[^\"]+"/);
+  assert.ok(!/href=["']\s*["']/i.test(html));
+});
+
+test('preserva metricas e atributos estruturados no novo layout', () => {
+  const { html } = montarPortal({
+    resumo: resumoAcessibilidade,
+    modulos: modulosComFalhasDeAcessibilidade,
+    acessibilidadeAtual: acessibilidade,
+  });
+
+  assert.ok(html.includes('data-summary-total="17"'));
+  assert.ok(html.includes('data-summary-passed="13"'));
+  assert.ok(html.includes('data-summary-failed="4"'));
+  assert.ok(html.includes('data-module="Web E2E" data-total="7" data-passed="3" data-failed="4"'));
+  assert.ok(html.includes('data-accessibility-failed="4"'));
+  assert.ok(html.includes('data-full-sha="head-sha-auditado"'));
+});
+
+test('escapa valores dinamicos sem criar markup executavel', () => {
+  const rastreabilidadePerigosa = {
+    ...rastreabilidade,
+    branch: 'feature/<script>alert("branch")</script>',
+    commit: 'abc" onmouseover="alert(1)',
+    pullRequest: '<img src=x onerror=alert(1)>',
+  };
+  const portal = criarDadosPortal({
+    resumo: resumoAcessibilidade,
+    modulos: modulosComFalhasDeAcessibilidade,
+    acessibilidade,
+    rastreabilidade: rastreabilidadePerigosa,
+    data: '19/07/2026, 12:00:00',
+  });
+  const html = gerarHtmlPortal(portal);
+
+  assert.ok(html.includes('feature/&lt;script&gt;alert(&quot;branch&quot;)&lt;/script&gt;'));
+  assert.ok(html.includes('abc&quot; onmouseover=&quot;alert(1)'));
+  assert.ok(html.includes('&lt;img src=x onerror=alert(1)&gt;'));
+  assert.ok(!html.includes('<script>alert("branch")</script>'));
+  assert.ok(!html.includes('title="abc" onmouseover="alert(1)"'));
+});
+
+test('protege percentuais contra divisao por zero', () => {
+  const modulos = Object.fromEntries(Object.keys(modulosComFalhasDeAcessibilidade).map((nome) => [
+    nome,
+    { total: 0, passed: 0, failed: 0 },
+  ]));
+  const resumo = { stats: { total: 0, passed: 0, failed: 0 }, status: 'passed' };
+  const { html } = montarPortal({ resumo, modulos, acessibilidadeAtual: semAcessibilidade });
+
+  assert.ok(html.includes('aria-valuenow="0"'));
+  assert.ok(!html.includes('NaN'));
+  assert.ok(!html.includes('Infinity'));
+  assert.match(html, />Sem resultados</);
 });
 
 test('reprova portal adulterado com status aprovado', () => {

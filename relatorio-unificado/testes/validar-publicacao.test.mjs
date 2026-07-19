@@ -12,6 +12,7 @@ const portal = {
   rastreabilidade: {
     commit: 'abc123',
     urlWorkflow: 'https://github.com/exemplo/projeto/actions/runs/123',
+    urlRepositorio: 'https://github.com/exemplo/projeto',
   },
 };
 
@@ -19,9 +20,11 @@ const html = `
   <p>BLOQUEADO POR ACESSIBILIDADE</p>
   <code>abc123</code>
   <a href="https://github.com/exemplo/projeto/actions/runs/123">Execução</a>
-  <a href="allure/index.html">Allure</a>
-  <a href="performance/fumaca/index.html">Fumaça</a>
-  <a href="performance/carga/index.html">Carga</a>
+  <a href="./allure/">Allure</a>
+  <a href="./performance/fumaca/">Fumaça</a>
+  <a href="./performance/carga/">Carga</a>
+  <a href="https://github.com/exemplo/projeto">Repositório</a>
+  <a href="https://mailtonascimento.com">Mailton Nascimento</a>
 `;
 
 test('valida portal público bloqueado e coerente com o artifact', () => {
@@ -51,4 +54,12 @@ test('reprova portal.json público divergente', () => {
 test('normaliza a URL do GitHub Pages', () => {
   assert.equal(normalizarUrlBase('https://exemplo.github.io/projeto'), 'https://exemplo.github.io/projeto/');
   assert.throws(() => normalizarUrlBase(), /não foi informada/);
+});
+
+test('reprova publicacao com link vazio', () => {
+  assert.throws(() => validarConteudoPublicado({
+    html: `${html}<a href="">Link inválido</a>`,
+    portalPublicado: structuredClone(portal),
+    portalEsperado: portal,
+  }), /link vazio/);
 });
