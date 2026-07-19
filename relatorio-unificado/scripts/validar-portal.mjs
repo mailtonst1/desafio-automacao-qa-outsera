@@ -1,22 +1,35 @@
-import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import {
+  carregarResultados,
+  obterRastreabilidade,
+  resumirAcessibilidade,
+  resumirModulos,
+} from './portal.mjs';
+import { validarPortal } from './validar-portal-lib.mjs';
 
 const argumentos = process.argv.slice(2);
-const indice = argumentos.indexOf('--saida');
-const saida = resolve(indice >= 0 ? argumentos[indice + 1] : 'saida');
+const valor = (nome, padrao) => {
+  const indice = argumentos.indexOf(nome);
+  return resolve(indice >= 0 ? argumentos[indice + 1] : padrao);
+};
+const saida = valor('--saida', 'saida');
+const diretorioResultados = valor('--resultados', 'temporario');
 const resumo = JSON.parse(await readFile(join(saida, 'summary.json'), 'utf8'));
+const portal = JSON.parse(await readFile(join(saida, 'portal.json'), 'utf8'));
 const html = await readFile(join(saida, 'index.html'), 'utf8');
-const bloqueado = resumo.status === 'failed' || resumo.stats.failed > 0;
+const resultados = await carregarResultados(diretorioResultados);
+const modulosEsperados = resumirModulos(resultados);
+const acessibilidadeEsperada = await resumirAcessibilidade(resultados, diretorioResultados);
+const rastreabilidadeEsperada = obterRastreabilidade(process.env);
 
-assert.ok(html.includes(`${resumo.stats.total} resultados`), 'Total consolidado divergente do summary.json.');
-assert.ok(html.includes(`Aprovados<strong>${resumo.stats.passed}</strong>`), 'Total de aprovados divergente do summary.json.');
-assert.ok(html.includes(`Reprovados<strong>${resumo.stats.failed}</strong>`), 'Total de reprovados divergente do summary.json.');
+validarPortal({
+  resumo,
+  portal,
+  html,
+  modulosEsperados,
+  acessibilidadeEsperada,
+  rastreabilidadeEsperada,
+});
 
-if (bloqueado) {
-  assert.ok(!html.includes('>APROVADO<'), 'Portal reprovado nao pode exibir APROVADO.');
-  assert.ok(html.includes('BLOQUEADO POR ACESSIBILIDADE'), 'Portal reprovado deve exibir o bloqueio.');
-  assert.match(html, /Web E2E<strong>7\/11<\/strong>aprovados e 4 reprovados/);
-}
-
-console.log(`Portal validado com status ${bloqueado ? 'BLOQUEADO' : 'APROVADO'}.`);
+console.log(`Portal validado com status ${portal.status.texto}.`);
