@@ -30,6 +30,28 @@ const somarModulos = (modulos, nomes = nomesDosModulos) => nomes.reduce((total, 
   failed: total.failed + modulos[nome].failed,
 }), { total: 0, passed: 0, failed: 0 });
 
+const somarMetricas = (...metricas) => metricas.reduce((total, atual) => ({
+  total: total.total + atual.total,
+  passed: total.passed + atual.passed,
+  failed: total.failed + atual.failed,
+}), { total: 0, passed: 0, failed: 0 });
+
+const contarResultado = (metricas, resultado) => {
+  metricas.total += 1;
+  if (resultado.status === 'passed') metricas.passed += 1;
+  else metricas.failed += 1;
+};
+
+const assertMetricasIguais = (atual, esperado, mensagem) => {
+  if (
+    atual.total !== esperado.total
+    || atual.passed !== esperado.passed
+    || atual.failed !== esperado.failed
+  ) {
+    throw new Error(mensagem);
+  }
+};
+
 export async function carregarResultados(diretorio) {
   const arquivos = (await readdir(diretorio)).filter((arquivo) => arquivo.endsWith('-result.json'));
   return Promise.all(arquivos.map(async (arquivo) => JSON.parse(await readFile(join(diretorio, arquivo), 'utf8'))));
@@ -49,6 +71,27 @@ export function resumirModulos(resultados) {
   return modulos;
 }
 
+export function resumirWebPorOrigem(resultados) {
+  const web = {
+    total: 0,
+    passed: 0,
+    failed: 0,
+    funcional: { total: 0, passed: 0, failed: 0 },
+    acessibilidade: { total: 0, passed: 0, failed: 0 },
+  };
+
+  for (const resultado of resultados.filter((item) => rotulo(item, 'module') === 'Web E2E')) {
+    const origem = rotulo(resultado, 'origin');
+    if (!['Funcional', 'Acessibilidade'].includes(origem)) {
+      throw new Error('Resultado Web E2E sem label origin Funcional ou Acessibilidade.');
+    }
+    contarResultado(web, resultado);
+    contarResultado(origem === 'Funcional' ? web.funcional : web.acessibilidade, resultado);
+  }
+
+  return web;
+}
+
 const nomeDaPagina = (nome) => {
   if (nome.includes('login')) return 'Login';
   if (nome.includes('catalogo')) return 'Catálogo';
@@ -59,7 +102,9 @@ const nomeDaPagina = (nome) => {
 
 export async function resumirAcessibilidade(resultados, diretorio) {
   const cenarios = resultados.filter((resultado) => (
-    rotulo(resultado, 'package')?.endsWith('acessibilidade.feature') && resultado.status === 'failed'
+    rotulo(resultado, 'module') === 'Web E2E'
+    && rotulo(resultado, 'origin') === 'Acessibilidade'
+    && resultado.status !== 'passed'
   ));
   const regras = new Map();
 
@@ -107,7 +152,7 @@ export function obterRastreabilidade(ambiente) {
   };
 }
 
-export function classificarStatus({ resumo, modulos, acessibilidade }) {
+export function classificarStatus({ resumo, modulos, acessibilidade, web }) {
   const consolidado = somarModulos(modulos);
   if (
     consolidado.total !== resumo.stats.total
@@ -122,6 +167,11 @@ export function classificarStatus({ resumo, modulos, acessibilidade }) {
     throw new Error('O status do summary.json diverge da quantidade consolidada de falhas.');
   }
 
+  assertMetricasIguais(web, modulos['Web E2E'], 'As metricas Web por origem divergem do modulo Web E2E.');
+  if (web.acessibilidade.failed !== acessibilidade.total) {
+    throw new Error('As falhas Web de acessibilidade divergem do resumo tecnico.');
+  }
+
   if (consolidado.failed === 0) {
     return { codigo: 'approved', texto: 'APROVADO' };
   }
@@ -131,17 +181,18 @@ export function classificarStatus({ resumo, modulos, acessibilidade }) {
   return { codigo: 'blocked-quality', texto: 'BLOQUEADO POR FALHAS DE QUALIDADE' };
 }
 
-export function criarDadosPortal({ resumo, modulos, acessibilidade, rastreabilidade, data }) {
-  const status = classificarStatus({ resumo, modulos, acessibilidade });
+export function criarDadosPortal({ resumo, modulos, web, acessibilidade, rastreabilidade, data }) {
+  const status = classificarStatus({ resumo, modulos, acessibilidade, web });
   const consolidado = somarModulos(modulos);
-  const funcionais = somarModulos(modulos, ['API', 'Web E2E', 'Mobile']);
+  const funcionais = somarMetricas(modulos.API, web.funcional, modulos.Mobile);
 
   return {
-    versao: 1,
+    versao: 2,
     status,
     resumo: { status: resumo.status, stats: resumo.stats },
     consolidado,
     modulos,
+    web,
     funcionais,
     acessibilidade,
     rastreabilidade,
@@ -157,8 +208,8 @@ export function gerarHtmlPortal(portal) {
   const web = portal.modulos['Web E2E'];
   const mobile = portal.modulos.Mobile;
   const performance = portal.modulos.Performance;
-  const acessibilidadeBloqueada = portal.acessibilidade.total > 0;
-  const qualidadeFuncionalAprovada = aprovado || bloqueadoPorAcessibilidade;
+  const acessibilidadeBloqueada = portal.web.acessibilidade.failed > 0;
+  const qualidadeFuncionalAprovada = portal.funcionais.failed === 0;
   const runId = portal.rastreabilidade.urlWorkflow.match(/\/actions\/runs\/([^/?#]+)/)?.[1] || 'Local';
   const shaCompleto = String(portal.rastreabilidade.commit);
   const shaCurto = shaCompleto.length > 12 ? shaCompleto.slice(0, 12) : shaCompleto;
@@ -200,7 +251,7 @@ export function gerarHtmlPortal(portal) {
   const pullRequest = portal.rastreabilidade.pullRequest
     ? `<div class="trace-item"><dt>Pull Request</dt><dd><a class="trace-link" href="${escaparHtml(portal.rastreabilidade.urlPullRequest)}" target="_blank" rel="noopener noreferrer">#${escaparHtml(portal.rastreabilidade.pullRequest)} ${icone('external')}<span class="sr-only"> (abre em nova aba)</span></a></dd></div>`
     : '';
-  const cardModulo = (nome, metricas, nomeIcone, descricao, evidencia) => {
+  const cardModulo = (nome, metricas, nomeIcone, descricao, evidencia, detalhamento = '') => {
     const percentual = metricas.total > 0 ? Math.round((metricas.passed / metricas.total) * 100) : 0;
     const estado = metricas.total === 0
       ? { codigo: 'empty', texto: 'Sem resultados' }
@@ -209,8 +260,10 @@ export function gerarHtmlPortal(portal) {
         : metricas.passed === 0
           ? { codigo: 'blocked', texto: 'Bloqueado' }
           : { codigo: 'partial', texto: 'Parcial' };
-    return `<article class="module-card ${estado.codigo}" data-module="${nome}" data-total="${metricas.total}" data-passed="${metricas.passed}" data-failed="${metricas.failed}"><div class="card-heading"><span class="icon-box">${icone(nomeIcone)}</span><span class="state-label ${estado.codigo}">${estado.texto}</span></div><h3>${nome}</h3><p class="module-description">${descricao}</p><div class="module-metric"><strong>${metricas.passed} / ${metricas.total}</strong><span>${percentual}% aprovado</span></div><div class="progress" role="progressbar" aria-label="Progresso de ${nome}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percentual}"><span style="width:${percentual}%"></span></div><div class="module-footer"><span>${metricas.failed} ${metricas.failed === 1 ? 'resultado reprovado' : 'resultados reprovados'}</span><a href="${evidencia}">Abrir evidência <span aria-hidden="true">→</span></a></div></article>`;
+    return `<article class="module-card ${estado.codigo}" data-module="${nome}" data-total="${metricas.total}" data-passed="${metricas.passed}" data-failed="${metricas.failed}"><div class="card-heading"><span class="icon-box">${icone(nomeIcone)}</span><span class="state-label ${estado.codigo}">${estado.texto}</span></div><h3>${nome}</h3><p class="module-description">${descricao}</p><div class="module-metric"><strong>${metricas.passed} / ${metricas.total}</strong><span>${percentual}% aprovado</span></div><div class="progress" role="progressbar" aria-label="Progresso de ${nome}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percentual}"><span style="width:${percentual}%"></span></div>${detalhamento}<div class="module-footer"><span>${metricas.failed} ${metricas.failed === 1 ? 'resultado reprovado' : 'resultados reprovados'}</span><a href="${evidencia}">Abrir evidência <span aria-hidden="true">→</span></a></div></article>`;
   };
+  const linhaOrigemWeb = (nome, metricas, bloqueado) => `<div class="web-origin" data-web-origin="${nome.toLowerCase()}" data-total="${metricas.total}" data-passed="${metricas.passed}" data-failed="${metricas.failed}"><span>${nome}</span><strong>${metricas.passed} / ${metricas.total} — ${bloqueado ? 'Bloqueado' : 'Aprovado'}</strong></div>`;
+  const detalhamentoWeb = `<div class="web-breakdown" aria-label="Detalhamento Web por origem">${linhaOrigemWeb('Funcional', portal.web.funcional, portal.web.funcional.failed > 0)}${linhaOrigemWeb('Acessibilidade', portal.web.acessibilidade, portal.web.acessibilidade.failed > 0)}</div>`;
   const statusFuncional = qualidadeFuncionalAprovada ? 'Aprovada' : 'Bloqueada';
   const statusAcessibilidade = acessibilidadeBloqueada ? 'Bloqueada' : 'Aprovada';
   const percentualFuncional = portal.funcionais.total > 0
@@ -433,7 +486,7 @@ export function gerarHtmlPortal(portal) {
     .trace-item dt { margin-bottom: 7px; color: var(--muted); font-size: .68rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
     .trace-item dd { min-width: 0; margin: 0; font-size: .88rem; font-weight: 750; }
     .trace-value { display: block; overflow: hidden; color: var(--text-soft); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
-    .trace-link { display: inline-flex; align-items: center; gap: 7px; color: var(--accent-strong); text-decoration: none; }
+    .trace-link { min-height: 44px; display: inline-flex; align-items: center; gap: 7px; color: var(--accent-strong); text-decoration: none; }
     .trace-link:hover { text-decoration: underline; }
     .trace-link .icon { width: 15px; height: 15px; }
     .trace-action { display: flex; align-items: center; }
@@ -501,6 +554,9 @@ export function gerarHtmlPortal(portal) {
     .progress { height: 7px; overflow: hidden; margin: 13px 0 17px; border-radius: 999px; background: rgba(174, 194, 224, .12); }
     .progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--success)); }
     .partial .progress span, .blocked .progress span { background: linear-gradient(90deg, var(--warning), var(--danger)); }
+    .web-breakdown { display: grid; gap: 7px; margin: 0 0 15px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: rgba(5, 11, 20, .22); }
+    .web-origin { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: .7rem; }
+    .web-origin strong { color: var(--text-soft); font-size: .69rem; text-align: right; }
     .module-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: .72rem; }
     .module-footer a { min-height: 44px; display: inline-flex; align-items: center; color: var(--accent-strong); font-weight: 800; text-decoration: none; }
     .module-footer a:hover { text-decoration: underline; }
@@ -627,8 +683,8 @@ export function gerarHtmlPortal(portal) {
       <aside class="decision-panel" aria-label="Decisão do quality gate">
         <p class="panel-kicker">Decisão da execução</p>
         <dl class="decision-list">
-          <div class="decision-row"><dt>Qualidade funcional</dt><dd class="${qualidadeFuncionalAprovada ? 'text-success' : 'text-danger'}">${statusFuncional}</dd></div>
-          <div class="decision-row"><dt>Acessibilidade</dt><dd class="${acessibilidadeBloqueada ? 'text-danger' : 'text-success'}">${statusAcessibilidade}</dd></div>
+          <div class="decision-row"><dt>Qualidade funcional</dt><dd class="${qualidadeFuncionalAprovada ? 'text-success' : 'text-danger'}" data-functional-status="${qualidadeFuncionalAprovada ? 'approved' : 'blocked'}">${statusFuncional}</dd></div>
+          <div class="decision-row"><dt>Acessibilidade</dt><dd class="${acessibilidadeBloqueada ? 'text-danger' : 'text-success'}" data-accessibility-status="${acessibilidadeBloqueada ? 'blocked' : 'approved'}">${statusAcessibilidade}</dd></div>
           <div class="decision-row"><dt>Decisão final</dt><dd class="${aprovado ? 'text-success' : 'text-danger'}">${aprovado ? 'Aprovado' : 'Bloqueado'}</dd></div>
         </dl>
         <p class="decision-updated">${icone('clock')} Última atualização: ${escaparHtml(portal.data)}</p>
@@ -654,7 +710,7 @@ export function gerarHtmlPortal(portal) {
       <div class="section-heading"><p class="eyebrow">Cobertura por camada</p><h2 id="modulos-titulo">Módulos da automação</h2><p>Progresso, resultado e acesso rápido às evidências técnicas de cada frente.</p></div>
       <div class="modules-grid">
         ${cardModulo('API', api, 'api', 'Contratos, autenticação e regras de negócio do ServeRest.', './allure/')}
-        ${cardModulo('Web E2E', web, 'web', 'Jornadas funcionais e auditorias de acessibilidade do alvo Web.', './allure/')}
+        ${cardModulo('Web E2E', web, 'web', 'Jornadas funcionais e auditorias de acessibilidade do alvo Web.', './allure/', detalhamentoWeb)}
         ${cardModulo('Mobile', mobile, 'mobile', 'Fluxos do aplicativo Android executados em emulador.', './allure/')}
         ${cardModulo('Performance', performance, 'gauge', 'Perfis k6 de fumaça e carga com thresholds verificáveis.', './performance/fumaca/')}
       </div>
@@ -663,9 +719,9 @@ export function gerarHtmlPortal(portal) {
       <div>
         <p class="eyebrow">Quality gate funcional</p>
         <h2 id="funcionais-titulo">Resultados funcionais</h2>
-        <p class="functional-status">${icone(qualidadeFuncionalAprovada ? 'check' : 'alert')} ${statusFuncional}</p>
-        <p>${bloqueadoPorAcessibilidade ? 'As reprovações consolidadas atuais pertencem aos cenários de acessibilidade; os fluxos funcionais permaneceram aprovados.' : bloqueadoPorQualidade ? 'Há falhas de qualidade fora da classificação exclusiva de acessibilidade e o componente permanece bloqueado.' : 'Todos os fluxos funcionais e critérios consolidados foram aprovados.'}</p>
-        <div class="functional-progress"><div><span>Progresso consolidado</span><strong>${percentualFuncional}%</strong></div><div class="progress" role="progressbar" aria-label="Progresso dos resultados funcionais" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percentualFuncional}"><span style="width:${percentualFuncional}%"></span></div></div>
+        <p class="functional-status" data-functional-status="${qualidadeFuncionalAprovada ? 'approved' : 'blocked'}">${icone(qualidadeFuncionalAprovada ? 'check' : 'alert')} ${statusFuncional}</p>
+        <p>${qualidadeFuncionalAprovada ? 'API, jornadas Web funcionais e Mobile atenderam aos critérios do quality gate funcional.' : `Há ${portal.funcionais.failed} ${portal.funcionais.failed === 1 ? 'falha funcional' : 'falhas funcionais'} e o componente permanece bloqueado.`}</p>
+        <div class="functional-progress" data-functional-total="${portal.funcionais.total}" data-functional-passed="${portal.funcionais.passed}" data-functional-failed="${portal.funcionais.failed}" data-functional-percent="${percentualFuncional}"><div><span>Progresso funcional</span><strong>${percentualFuncional}%</strong></div><div class="progress" role="progressbar" aria-label="Progresso dos resultados funcionais" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percentualFuncional}"><span style="width:${percentualFuncional}%"></span></div></div>
       </div>
       <div class="functional-numbers">
         <div class="functional-number"><span>Implementados</span><strong>${portal.funcionais.total}</strong></div>

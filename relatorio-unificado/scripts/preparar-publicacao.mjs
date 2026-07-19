@@ -7,6 +7,7 @@ import {
   obterRastreabilidade,
   resumirAcessibilidade,
   resumirModulos,
+  resumirWebPorOrigem,
 } from './portal.mjs';
 
 const argumentos = process.argv.slice(2);
@@ -29,11 +30,13 @@ if (!fumaca || !carga) {
 const resumo = JSON.parse(await readFile(join(saida, 'summary.json'), 'utf8'));
 const resultadosAllure = await carregarResultados(resultados);
 const modulos = resumirModulos(resultadosAllure);
+const web = resumirWebPorOrigem(resultadosAllure);
 const acessibilidade = await resumirAcessibilidade(resultadosAllure, resultados);
 const rastreabilidade = obterRastreabilidade(process.env);
 const portal = criarDadosPortal({
   resumo,
   modulos,
+  web,
   acessibilidade,
   rastreabilidade,
   data: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),

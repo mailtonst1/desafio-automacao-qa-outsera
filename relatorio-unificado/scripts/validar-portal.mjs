@@ -5,6 +5,7 @@ import {
   obterRastreabilidade,
   resumirAcessibilidade,
   resumirModulos,
+  resumirWebPorOrigem,
 } from './portal.mjs';
 import { validarPortal } from './validar-portal-lib.mjs';
 
@@ -20,6 +21,7 @@ const portal = JSON.parse(await readFile(join(saida, 'portal.json'), 'utf8'));
 const html = await readFile(join(saida, 'index.html'), 'utf8');
 const resultados = await carregarResultados(diretorioResultados);
 const modulosEsperados = resumirModulos(resultados);
+const webEsperado = resumirWebPorOrigem(resultados);
 const acessibilidadeEsperada = await resumirAcessibilidade(resultados, diretorioResultados);
 const rastreabilidadeEsperada = obterRastreabilidade(process.env);
 
@@ -28,6 +30,7 @@ validarPortal({
   portal,
   html,
   modulosEsperados,
+  webEsperado,
   acessibilidadeEsperada,
   rastreabilidadeEsperada,
 });
