@@ -1,5 +1,6 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { rotularResultado } from './preparar-resultados-lib.mjs';
 
 const raiz = resolve(import.meta.dirname, '..');
 const destino = join(raiz, 'temporario');
@@ -11,28 +12,25 @@ for (let indice = 0; indice < argumentos.length; indice += 2) {
 }
 
 const modulos = [
-  ['api', 'API'],
-  ['web', 'Web E2E'],
-  ['mobile', 'Mobile'],
+  ['api', 'API', undefined],
+  ['web', 'Web E2E', undefined],
+  ['web-funcional', 'Web E2E', 'Funcional'],
+  ['web-acessibilidade', 'Web E2E', 'Acessibilidade'],
+  ['mobile', 'Mobile', undefined],
 ];
 
-async function rotularResultados(pasta, modulo, arquivos) {
+async function rotularResultados(pasta, modulo, origem, arquivos) {
   await Promise.all(arquivos.filter((arquivo) => arquivo.endsWith('-result.json')).map(async (arquivo) => {
     const caminho = join(pasta, arquivo);
     const resultado = JSON.parse(await readFile(caminho, 'utf8'));
-    resultado.labels = [
-      { name: 'parentSuite', value: modulo },
-      { name: 'module', value: modulo },
-      ...(resultado.labels || []).filter((label) => !['parentSuite', 'module'].includes(label.name)),
-    ];
-    await writeFile(caminho, JSON.stringify(resultado), 'utf8');
+    await writeFile(caminho, JSON.stringify(rotularResultado(resultado, modulo, origem)), 'utf8');
   }));
 }
 
 await rm(destino, { recursive: true, force: true });
 await mkdir(destino, { recursive: true });
 
-for (const [chave, modulo] of modulos) {
+for (const [chave, modulo, origemResultado] of modulos) {
   const origem = entradas.get(chave);
   if (!origem) continue;
   const pastaOrigem = resolve(origem);
@@ -40,7 +38,7 @@ for (const [chave, modulo] of modulos) {
   try {
     const arquivos = await readdir(pastaOrigem);
     await cp(pastaOrigem, pastaDestino, { recursive: true, errorOnExist: false });
-    await rotularResultados(pastaDestino, modulo, arquivos);
+    await rotularResultados(pastaDestino, modulo, origemResultado, arquivos);
   } catch (erro) {
     if (erro.code !== 'ENOENT') throw erro;
   }

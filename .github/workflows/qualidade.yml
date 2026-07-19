@@ -16,10 +16,13 @@ permissions:
 
 jobs:
   validacao:
+    name: Validar configuração da esteira
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - name: Valida configuracoes e arquivos sensiveis
+      - name: Baixar código-fonte
+        uses: actions/checkout@v4
+      - name: Validar configurações e arquivos sensíveis
         run: |
           docker compose config --quiet
           test ! -f .env
@@ -27,40 +30,66 @@ jobs:
           test -f testes-web-e2e/package-lock.json
           test -f testes-mobile/mvnw
           test -f relatorio-unificado/package-lock.json
-          ! git ls-files | grep -E '\.(apk|ipa)$'
-          ! git ls-files | grep -E '(^|/)(allure-results|allure-report|relatorios)/(summary\.(json|txt|html))$'
-          ! rg -n -i '(api[_-]?key|secret|ghp_)' --glob '!**/.env.example' .
+          if git ls-files | grep -E '\.(apk|ipa)$'; then
+            echo 'Aplicativo empacotado indevidamente versionado.'
+            exit 1
+          fi
+          if git ls-files | grep -E '(^|/)(allure-results|allure-report|relatorios)/(summary\.(json|txt|html))$'; then
+            echo 'Relatório gerado indevidamente versionado.'
+            exit 1
+          fi
+          if rg -n -i '(api[_-]?key|secret|ghp_)' --glob '!**/.env.example' --glob '!**/*.md' --glob '!.github/workflows/qualidade.yml' .; then
+            echo 'Possível segredo encontrado no repositório.'
+            exit 1
+          fi
 
   testes-api:
+    name: Executar testes de API
     needs: validacao
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Baixar código-fonte
+        uses: actions/checkout@v4
+      - name: Configurar Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - run: docker compose up -d serverest --wait
-      - run: bash ./mvnw -B test allure:report
+      - name: Iniciar ServeRest
+        run: docker compose up -d serverest --wait
+      - name: Executar regressão de API
+        run: bash ./mvnw -B test allure:report
         working-directory: testes-api
-      - if: failure()
+      - name: Publicar logs do ServeRest em caso de falha
+        if: failure()
         run: docker compose logs serverest
-      - if: always()
+      - name: Publicar resultados Allure de API
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: resultados-api
-          path: |
-            testes-api/target/allure-results
-            testes-api/target/surefire-reports
+          path: testes-api/target/allure-results
+          if-no-files-found: error
+      - name: Publicar evidências auxiliares de API
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-api
+          path: testes-api/target/surefire-reports
           if-no-files-found: warn
 
-  testes-web:
+  web-funcional:
+    name: Executar Web funcional
     needs: validacao
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Baixar código-fonte
+        uses: actions/checkout@v4
+      - name: Configurar Node.js com cache npm
+        uses: actions/setup-node@v4
         with:
           node-version: '20.19.5'
           cache: npm
@@ -68,8 +97,10 @@ jobs:
       - name: Instalar dependências Web
         run: npm ci
         working-directory: testes-web-e2e
-      - name: Instalar Cypress
-        run: npx cypress install
+      - name: Instalar e verificar Cypress
+        run: |
+          npx cypress install
+          npm run verificar:cypress
         working-directory: testes-web-e2e
       - name: Validar tipos do projeto Web
         run: npm run typecheck
@@ -77,39 +108,101 @@ jobs:
       - name: Executar análise estática com ESLint
         run: npm run lint
         working-directory: testes-web-e2e
-      - name: Executar regressão Web e acessibilidade
-        run: npm run regressao
+      - name: Executar sete cenários Web funcionais
+        run: npm run funcional
         working-directory: testes-web-e2e
-      - name: Publicar evidências Web
+      - name: Publicar resultados Allure do Web funcional
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: resultados-web
+          name: resultados-web-funcional
+          path: testes-web-e2e/allure-results
+          if-no-files-found: error
+      - name: Publicar screenshots e vídeos do Web funcional
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-web-funcional
           path: |
-            testes-web-e2e/allure-results
+            testes-web-e2e/cypress/screenshots
+            testes-web-e2e/cypress/videos
+          if-no-files-found: warn
+
+  web-acessibilidade:
+    name: Executar Web acessibilidade
+    needs: validacao
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Baixar código-fonte
+        uses: actions/checkout@v4
+      - name: Configurar Node.js com cache npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.5'
+          cache: npm
+          cache-dependency-path: testes-web-e2e/package-lock.json
+      - name: Instalar dependências Web
+        run: npm ci
+        working-directory: testes-web-e2e
+      - name: Instalar e verificar Cypress
+        run: |
+          npx cypress install
+          npm run verificar:cypress
+        working-directory: testes-web-e2e
+      - name: Executar cenários Web de acessibilidade
+        run: npm run acessibilidade
+        working-directory: testes-web-e2e
+      - name: Validar JSONs e resultados de acessibilidade
+        if: always()
+        run: |
+          test -n "$(find allure-results -type f -name '*-result.json' -print -quit)"
+          test -n "$(find allure-results -type f -name '*-attachment.json' -print -quit)"
+        working-directory: testes-web-e2e
+      - name: Publicar resultados Allure e JSONs de acessibilidade
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-web-acessibilidade
+          path: testes-web-e2e/allure-results
+          if-no-files-found: error
+      - name: Publicar screenshots e vídeos de acessibilidade
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-web-acessibilidade
+          path: |
             testes-web-e2e/cypress/screenshots
             testes-web-e2e/cypress/videos
           if-no-files-found: warn
 
   testes-mobile:
+    name: Executar testes Mobile
     needs: validacao
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Baixar código-fonte
+        uses: actions/checkout@v4
+      - name: Configurar Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - uses: actions/setup-node@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '20.19.5'
-      - run: |
+      - name: Preparar Appium e aplicativo Mobile
+        run: |
           npm install -g appium@3.1.2
           appium driver install uiautomator2@6.7.9
           bash ./testes-mobile/scripts/baixar-aplicativo.sh
-      - run: sudo chmod 666 /dev/kvm
-      - uses: ReactiveCircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
+      - name: Permitir acesso ao acelerador Android
+        run: sudo chmod 666 /dev/kvm
+      - name: Executar regressão Mobile no emulador
+        uses: ReactiveCircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
         with:
           api-level: 34
           arch: x86_64
@@ -121,58 +214,80 @@ jobs:
             adb install -r testes-mobile/apps/mda-2.2.0-25.apk
             appium server --address 127.0.0.1 --port 4723 > testes-mobile/target/appium.log 2>&1 &
             cd testes-mobile && bash ./mvnw -B test allure:report
-      - if: always()
+      - name: Publicar resultados Allure Mobile
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: resultados-mobile
+          path: testes-mobile/target/allure-results
+          if-no-files-found: error
+      - name: Publicar evidências auxiliares Mobile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-mobile
           path: |
-            testes-mobile/target/allure-results
             testes-mobile/target/surefire-reports
             testes-mobile/target/appium.log
           if-no-files-found: warn
 
   performance-fumaca:
+    name: Executar performance de fumaça
     needs: validacao
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - run: |
+      - name: Baixar código-fonte
+        uses: actions/checkout@v4
+      - name: Executar perfil k6 de fumaça
+        run: |
           bash ./scripts/executar-performance.sh fumaca
-          find testes-performance/relatorios -type f -print
-      - if: always()
+          find testes-performance/relatorios/fumaca -type f -print
+      - name: Publicar resultados de performance de fumaça
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: resultados-performance
-          path: testes-performance/relatorios
-          if-no-files-found: warn
+          path: testes-performance/relatorios/fumaca
+          if-no-files-found: error
 
   performance-carga:
+    name: Executar performance de carga
     needs: validacao
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - run: |
+      - name: Baixar código-fonte
+        uses: actions/checkout@v4
+      - name: Executar perfil k6 de carga
+        run: |
           bash ./scripts/executar-performance.sh carga
           find testes-performance/relatorios/carga -type f -print
-      - if: always()
+      - name: Publicar resultados de performance de carga
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: resultados-performance-carga
           path: testes-performance/relatorios/carga
-          if-no-files-found: warn
+          if-no-files-found: error
 
   relatorio-unificado:
+    name: Gerar relatório unificado
     if: always()
-    needs: [testes-api, testes-web, testes-mobile, performance-fumaca, performance-carga]
+    needs: [testes-api, web-funcional, web-acessibilidade, testes-mobile, performance-fumaca, performance-carga]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Baixar código-fonte
+        uses: actions/checkout@v4
+      - name: Configurar Node.js com cache npm
+        uses: actions/setup-node@v4
         with:
           node-version: '20.19.5'
           cache: npm
           cache-dependency-path: relatorio-unificado/package-lock.json
-      - uses: actions/download-artifact@v4
+      - name: Baixar resultados obrigatórios
+        uses: actions/download-artifact@v4
         with:
           pattern: resultados-*
           path: artefatos
@@ -185,68 +300,243 @@ jobs:
         run: |
           npm ci
           npm test
-          mkdir -p entradas/api entradas/web entradas/mobile testes-performance/relatorios/fumaca testes-performance/relatorios/carga
-          find ../artefatos/resultados-api -type f -path '*/allure-results/*' -exec cp {} entradas/api/ \;
-          find ../artefatos/resultados-web -type f -path '*/allure-results/*' -exec cp {} entradas/web/ \;
-          find ../artefatos/resultados-mobile -type f -path '*/allure-results/*' -exec cp {} entradas/mobile/ \;
-          find ../artefatos/resultados-performance -type f -name 'summary.*' -exec cp {} testes-performance/relatorios/fumaca/ \;
-          find ../artefatos/resultados-performance -type f -name 'dashboard.html' -exec cp {} testes-performance/relatorios/fumaca/ \;
-          find ../artefatos/resultados-performance-carga -type f -name 'summary.*' -exec cp {} testes-performance/relatorios/carga/ \;
-          find ../artefatos/resultados-performance-carga -type f -name 'dashboard.html' -exec cp {} testes-performance/relatorios/carga/ \;
+          mkdir -p entradas/api entradas/web-funcional entradas/web-acessibilidade entradas/mobile testes-performance/relatorios/fumaca testes-performance/relatorios/carga
+          find ../artefatos/resultados-api -type f -exec cp {} entradas/api/ \;
+          find ../artefatos/resultados-web-funcional -type f -exec cp {} entradas/web-funcional/ \;
+          find ../artefatos/resultados-web-acessibilidade -type f -exec cp {} entradas/web-acessibilidade/ \;
+          find ../artefatos/resultados-mobile -type f -exec cp {} entradas/mobile/ \;
+          find ../artefatos/resultados-performance -type f -exec cp {} testes-performance/relatorios/fumaca/ \;
+          find ../artefatos/resultados-performance-carga -type f -exec cp {} testes-performance/relatorios/carga/ \;
+          test -n "$(find entradas/api -type f -name '*-result.json' -print -quit)"
+          test -n "$(find entradas/web-funcional -type f -name '*-result.json' -print -quit)"
+          test -n "$(find entradas/web-acessibilidade -type f -name '*-result.json' -print -quit)"
+          test -n "$(find entradas/web-acessibilidade -type f -name '*-attachment.json' -print -quit)"
+          test -n "$(find entradas/mobile -type f -name '*-result.json' -print -quit)"
           test -s testes-performance/relatorios/fumaca/summary.json
           test -s testes-performance/relatorios/carga/summary.json
           test -s testes-performance/relatorios/fumaca/dashboard.html
           test -s testes-performance/relatorios/carga/dashboard.html
-          npm run preparar -- --api entradas/api --web entradas/web --mobile entradas/mobile
+          npm run preparar -- --api entradas/api --web-funcional entradas/web-funcional --web-acessibilidade entradas/web-acessibilidade --mobile entradas/mobile
           npm run converter-k6 -- --origem testes-performance/relatorios/fumaca --destino temporario --perfil Fumaca
           npm run converter-k6 -- --origem testes-performance/relatorios/carga --destino temporario --perfil Carga
-          test -f temporario/Fumaca-result.json
-          test -f temporario/Carga-result.json
+          test -s temporario/Fumaca-result.json
+          test -s temporario/Carga-result.json
           npm run gerar
           npm run preparar-publicacao -- --fumaca testes-performance/relatorios/fumaca --carga testes-performance/relatorios/carga
           npm run validar-portal
-          test -f saida/index.html
-          test -f saida/portal.json
-          test -f saida/allure/index.html
-          test -f saida/performance/fumaca/index.html
-          test -f saida/performance/carga/index.html
+          test -s saida/index.html
+          test -s saida/summary.json
+          test -s saida/portal.json
+          test -s saida/allure/index.html
+          test -s saida/performance/fumaca/index.html
+          test -s saida/performance/carga/index.html
         working-directory: relatorio-unificado
-      - if: always()
+      - name: Publicar relatório unificado obrigatório
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: relatorio-allure-unificado
           path: relatorio-unificado/saida
-          if-no-files-found: warn
+          if-no-files-found: error
 
-  quality-gate:
+  gate-funcional:
+    name: Validar gate funcional
     if: always()
-    needs: [testes-api, testes-web, testes-mobile, performance-fumaca, performance-carga, relatorio-unificado]
+    needs: [testes-api, web-funcional, testes-mobile, performance-fumaca, performance-carga, relatorio-unificado]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Aplica quality gate
+      - name: Consolidar qualidade funcional
+        env:
+          API: ${{ needs.testes-api.result }}
+          WEB_FUNCIONAL: ${{ needs.web-funcional.result }}
+          MOBILE: ${{ needs.testes-mobile.result }}
+          PERFORMANCE_FUMACA: ${{ needs.performance-fumaca.result }}
+          PERFORMANCE_CARGA: ${{ needs.performance-carga.result }}
+          RELATORIO: ${{ needs.relatorio-unificado.result }}
         run: |
-          test '${{ needs.testes-api.result }}' = success
-          test '${{ needs.testes-web.result }}' = success
-          test '${{ needs.testes-mobile.result }}' = success
-          test '${{ needs.performance-fumaca.result }}' = success
-          test '${{ needs.performance-carga.result }}' = success
-          test '${{ needs.relatorio-unificado.result }}' = success
+          {
+            echo '## Gate funcional'
+            echo "- API: $API"
+            echo "- Web funcional: $WEB_FUNCIONAL"
+            echo "- Mobile: $MOBILE"
+            echo "- Performance fumaça: $PERFORMANCE_FUMACA"
+            echo "- Performance carga: $PERFORMANCE_CARGA"
+            echo "- Relatório unificado: $RELATORIO"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$API" = success ] && [ "$WEB_FUNCIONAL" = success ] && [ "$MOBILE" = success ] && [ "$PERFORMANCE_FUMACA" = success ] && [ "$PERFORMANCE_CARGA" = success ] && [ "$RELATORIO" = success ]; then
+            echo 'QUALIDADE FUNCIONAL: APROVADA' | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo 'QUALIDADE FUNCIONAL: REPROVADA — um ou mais componentes funcionais falharam.' | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+  gate-acessibilidade:
+    name: Validar gate de acessibilidade
+    if: always()
+    needs: web-acessibilidade
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Consolidar acessibilidade
+        env:
+          WEB_ACESSIBILIDADE: ${{ needs.web-acessibilidade.result }}
+        run: |
+          echo '## Gate de acessibilidade' >> "$GITHUB_STEP_SUMMARY"
+          echo "- Web acessibilidade: $WEB_ACESSIBILIDADE" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$WEB_ACESSIBILIDADE" = success ]; then
+            echo 'ACESSIBILIDADE: APROVADA' | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo 'ACESSIBILIDADE: BLOQUEADA — cenários encontraram violações serious ou critical no alvo externo.' | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+  quality-gate-final:
+    name: Consolidar decisão final de qualidade
+    if: always()
+    needs: [gate-funcional, gate-acessibilidade]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Publicar decisão final
+        env:
+          GATE_FUNCIONAL: ${{ needs.gate-funcional.result }}
+          GATE_ACESSIBILIDADE: ${{ needs.gate-acessibilidade.result }}
+        run: |
+          {
+            echo '## Decisão final de qualidade'
+            echo "- Gate funcional: $GATE_FUNCIONAL"
+            echo "- Gate de acessibilidade: $GATE_ACESSIBILIDADE"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$GATE_FUNCIONAL" = success ] && [ "$GATE_ACESSIBILIDADE" = success ]; then
+            echo 'DECISÃO FINAL: APROVADA' | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ "$GATE_FUNCIONAL" = success ] && [ "$GATE_ACESSIBILIDADE" != success ]; then
+            echo 'DECISÃO FINAL: BLOQUEADO POR ACESSIBILIDADE' | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo 'DECISÃO FINAL: BLOQUEADA POR FALHA FUNCIONAL' | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
 
   pages:
-    if: always() && needs.relatorio-unificado.result == 'success' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    name: Publicar relatório no GitHub Pages
+    if: needs.relatorio-unificado.result == 'success' && github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: relatorio-unificado
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      page_url: ${{ steps.publicar.outputs.page_url }}
     environment:
       name: github-pages
       url: ${{ steps.publicar.outputs.page_url }}
     steps:
-      - uses: actions/configure-pages@v5
-      - uses: actions/download-artifact@v4
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Baixar relatório unificado
+        uses: actions/download-artifact@v4
         with:
           name: relatorio-allure-unificado
           path: relatorio
-      - uses: actions/upload-pages-artifact@v3
+      - name: Preparar artifact do GitHub Pages
+        uses: actions/upload-pages-artifact@v3
         with:
           path: relatorio
-      - id: publicar
+      - name: Publicar relatório
+        id: publicar
         uses: actions/deploy-pages@v4
+
+  validar-portal-publicado:
+    name: Validar portal publicado
+    if: needs.pages.result == 'success'
+    needs: [pages, relatorio-unificado]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Baixar código-fonte
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.5'
+      - name: Baixar portal esperado
+        uses: actions/download-artifact@v4
+        with:
+          name: relatorio-allure-unificado
+          path: relatorio-publicado
+      - name: Validar URL e conteúdo público
+        env:
+          PORTAL_URL: ${{ needs.pages.outputs.page_url }}
+        run: npm run validar-publicacao -- --url "$PORTAL_URL" --portal ../relatorio-publicado/portal.json
+        working-directory: relatorio-unificado
+
+  resumo-da-execucao:
+    name: Publicar resumo executivo da execução
+    if: always()
+    needs:
+      - testes-api
+      - web-funcional
+      - web-acessibilidade
+      - testes-mobile
+      - performance-fumaca
+      - performance-carga
+      - relatorio-unificado
+      - gate-funcional
+      - gate-acessibilidade
+      - quality-gate-final
+      - pages
+      - validar-portal-publicado
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Escrever resumo executivo
+        env:
+          API: ${{ needs.testes-api.result }}
+          WEB_FUNCIONAL: ${{ needs.web-funcional.result }}
+          WEB_ACESSIBILIDADE: ${{ needs.web-acessibilidade.result }}
+          MOBILE: ${{ needs.testes-mobile.result }}
+          PERFORMANCE_FUMACA: ${{ needs.performance-fumaca.result }}
+          PERFORMANCE_CARGA: ${{ needs.performance-carga.result }}
+          RELATORIO: ${{ needs.relatorio-unificado.result }}
+          GATE_FUNCIONAL: ${{ needs.gate-funcional.result }}
+          GATE_ACESSIBILIDADE: ${{ needs.gate-acessibilidade.result }}
+          DECISAO_FINAL: ${{ needs.quality-gate-final.result }}
+          PAGES: ${{ needs.pages.result }}
+          PORTAL_PUBLICADO: ${{ needs.validar-portal-publicado.result }}
+          PORTAL_URL: ${{ needs.pages.outputs.page_url }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            echo '# Resumo executivo da execução'
+            echo '| Componente | Resultado |'
+            echo '| --- | --- |'
+            echo "| API | $API |"
+            echo "| Web funcional | $WEB_FUNCIONAL |"
+            echo "| Web acessibilidade | $WEB_ACESSIBILIDADE |"
+            echo "| Mobile | $MOBILE |"
+            echo "| Performance fumaça | $PERFORMANCE_FUMACA |"
+            echo "| Performance carga | $PERFORMANCE_CARGA |"
+            echo "| Relatório unificado | $RELATORIO |"
+            echo "| Gate funcional | $GATE_FUNCIONAL |"
+            echo "| Gate de acessibilidade | $GATE_ACESSIBILIDADE |"
+            echo "| Quality gate final | $DECISAO_FINAL |"
+            echo "| GitHub Pages | $PAGES |"
+            echo "| Validação do portal | $PORTAL_PUBLICADO |"
+            echo
+            if [ "$GATE_FUNCIONAL" = success ] && [ "$GATE_ACESSIBILIDADE" != success ]; then
+              echo '**DECISÃO FINAL: BLOQUEADO POR ACESSIBILIDADE**'
+              echo
+              echo 'Motivo: os quatro cenários Web de acessibilidade registram violações serious ou critical no alvo externo; as falhas não foram suprimidas.'
+            elif [ "$DECISAO_FINAL" = success ]; then
+              echo '**DECISÃO FINAL: APROVADA**'
+            else
+              echo '**DECISÃO FINAL: BLOQUEADA POR FALHA FUNCIONAL OU DE INFRAESTRUTURA**'
+            fi
+            echo
+            if [ -n "$PORTAL_URL" ]; then
+              echo "- [Portal publicado]($PORTAL_URL)"
+            else
+              echo '- Portal publicado: não aplicável para esta execução.'
+            fi
+            echo "- [Execução e artifacts]($RUN_URL)"
+          } >> "$GITHUB_STEP_SUMMARY"

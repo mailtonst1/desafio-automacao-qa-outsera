@@ -12,6 +12,8 @@
     "lint": "eslint .",
     "verificar:cypress": "cypress verify",
     "smoke": "cypress run --env tags=@smoke",
+    "funcional": "cypress run --spec \"cypress/e2e/features/autenticacao.feature,cypress/e2e/features/checkout.feature\" --env tags=@regressao",
+    "acessibilidade": "cypress run --spec cypress/e2e/features/acessibilidade.feature --env tags=@acessibilidade",
     "regressao": "cypress run --env tags=@regressao",
     "relatorio": "allure generate allure-results --clean -o allure-report"
   },
