@@ -14,7 +14,7 @@ Monorepo de qualidade com suites independentes de API, Web E2E, Mobile Android e
 
 ## Resultado validado
 
-O ultimo ciclo completo aprovado executou 58 testes funcionais: 43 API, 7 Web E2E e 6 Mobile. Performance tambem executa fumaca (5 VUs, 30 s) e carga (ramp-up de 1 minuto, 500 VUs por 5 minutos, ramp-down de 1 minuto). Os jobs sao separados e o quality gate exige sucesso de todos eles e do relatorio unificado.
+O repositorio possui 60 testes funcionais implementados: 43 API, 11 Web E2E e 6 Mobile. Os quatro novos testes Web de acessibilidade foram executados em 17/07/2026 e reprovaram por violacoes `serious` e `critical` do alvo externo; por isso 56 testes compunham o ultimo ciclo funcional aprovado. Performance possui dois perfis k6: fumaca (5 VUs, 30 s) e carga (ramp-up de 1 minuto, 500 VUs por 5 minutos, ramp-down de 1 minuto). Os jobs sao separados e o quality gate exige sucesso de todos eles e do relatorio unificado.
 
 ## Inicio rapido
 
@@ -50,7 +50,7 @@ As suites API, Web e Performance foram executadas a partir de clone limpo, sem a
 | Modulo | Escopo | Comando principal |
 | --- | --- | --- |
 | `testes-api` | ServeRest: autenticacao, usuarios, produtos, carrinhos e contratos | `./mvnw.cmd test` |
-| `testes-web-e2e` | Automation Exercise: autenticacao e checkout | `npm run regressao` |
+| `testes-web-e2e` | Automation Exercise: autenticacao, checkout e acessibilidade | `npm run typecheck && npm run lint && npm run regressao` |
 | `testes-mobile` | My Demo App Android 2.2.0: catalogo, login, produto e checkout | `./mvnw.cmd test` |
 | `testes-performance` | k6 contra ServeRest local: fumaca e carga | `scripts/executar-performance.ps1` |
 | `relatorio-unificado` | Allure consolidado e resumo de performance | `npm run gerar` |
@@ -72,7 +72,7 @@ O APK e baixado da release oficial e validado por SHA-256; nao e versionado. Dad
 
 ## Evidencias e CI
 
-Cada chamada API anexa requisicao, resposta e metadados ao Allure, com `Authorization`, `authorization` e `password` mascarados. Web anexa screenshot de viewport e URL final por cenario; em falha, os screenshots/videos do Cypress tambem sao preservados. Mobile anexa screenshot final e dados de dispositivo por teste e, em falha, page source, Appium log e logcat.
+Cada chamada API anexa requisicao, resposta e metadados ao Allure, com `Authorization`, `authorization` e `password` mascarados. Web anexa screenshot de viewport e URL final por cenario; falhas de acessibilidade tambem recebem um JSON detalhado no Allure, e os screenshots/videos do Cypress sao preservados. Mobile anexa screenshot final e dados de dispositivo por teste e, em falha, page source, Appium log e logcat.
 
 O workflow [Qualidade](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions/workflows/qualidade.yml) publica artifacts de cada modulo com `if: always()`. O Pages contem a entrada do Allure e os relatorios k6 de fumaca e carga.
 

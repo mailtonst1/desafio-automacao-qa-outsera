@@ -2,9 +2,9 @@
 
 ## Jobs
 
-`qualidade.yml` executa validacao, API, Web E2E, Mobile e k6 de fumaca em paralelo depois da validacao. O relatorio unificado executa sempre, baixa os artifacts disponiveis e publica `relatorio-allure-unificado`. O `quality-gate` so aprova quando os quatro jobs obrigatorios foram concluídos com sucesso.
+`qualidade.yml` executa validacao e, depois dela, API, Web E2E, Mobile, k6 de fumaca e k6 de carga em paralelo. No job Web, a ordem e instalacao das dependencias e do Cypress, typecheck, lint e regressao. O relatorio unificado executa sempre, baixa os artifacts disponiveis e publica `relatorio-allure-unificado`. O `quality-gate` so aprova quando as cinco suites e o relatorio foram concluidos com sucesso.
 
-`carga-performance.yml` e manual e executa apenas o perfil de 500 VUs. Ele nao participa das execucoes de push e pull request.
+`carga-performance.yml` oferece uma execucao manual adicional apenas do perfil de 500 VUs. O mesmo perfil tambem participa de push, pull request e execucao manual do workflow `qualidade.yml`.
 
 ## Allure
 
@@ -24,8 +24,8 @@ O HTML autocontido fica em `relatorio-unificado/saida/index.html` e nao e versio
 
 ## Evidencias
 
-Os jobs publicam `resultados-api`, `resultados-web`, `resultados-mobile` e `resultados-performance` mesmo em falha. O consolidado e publicado como `relatorio-allure-unificado`.
+Os jobs publicam `resultados-api`, `resultados-web`, `resultados-mobile`, `resultados-performance` e `resultados-performance-carga` mesmo em falha. O consolidado e publicado como `relatorio-allure-unificado`.
 
 ## Pages
 
-Em pushes para `main`, o workflow tenta publicar o artifact no GitHub Pages sem bloquear o quality gate. A disponibilidade depende de Pages estar habilitado no repositorio; nenhuma URL e presumida pelo projeto.
+Em pushes para `main`, o workflow publica o artifact no GitHub Pages quando o job `relatorio-unificado` conclui com sucesso. A publicacao independe do resultado funcional: um portal bloqueado continua sendo publicado para expor com fidelidade as falhas do quality gate. O job Pages nao usa `continue-on-error`; falhas tecnicas de configuracao, upload ou deploy permanecem visiveis na execucao. Em pull requests, o artifact e gerado e auditavel, mas o Pages nao e publicado.

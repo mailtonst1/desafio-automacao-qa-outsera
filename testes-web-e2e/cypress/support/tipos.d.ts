@@ -16,6 +16,7 @@ declare global {
       criarUsuarioPorApi(): Chainable<UsuarioDeTeste>;
       removerUsuarioPorApi(usuario?: UsuarioDeTeste): Chainable<void>;
       usuarioAtual(): Chainable<UsuarioDeTeste>;
+      validarAcessibilidade(): Chainable<void>;
     }
   }
 }

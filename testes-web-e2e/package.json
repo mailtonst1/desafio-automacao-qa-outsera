@@ -9,6 +9,7 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
     "verificar:cypress": "cypress verify",
     "smoke": "cypress run --env tags=@smoke",
     "regressao": "cypress run --env tags=@regressao",
@@ -17,10 +18,15 @@
   "devDependencies": {
     "@badeball/cypress-cucumber-preprocessor": "22.0.1",
     "@bahmutov/cypress-esbuild-preprocessor": "2.2.4",
+    "@eslint/js": "10.0.1",
     "allure-commandline": "2.30.0",
     "allure-cypress": "3.0.8",
+    "axe-core": "4.12.1",
     "cypress": "14.0.1",
+    "cypress-axe": "1.7.0",
     "cypress-on-fix": "1.1.0",
-    "typescript": "5.7.3"
+    "eslint": "10.7.0",
+    "typescript": "5.7.3",
+    "typescript-eslint": "8.64.0"
   }
 }

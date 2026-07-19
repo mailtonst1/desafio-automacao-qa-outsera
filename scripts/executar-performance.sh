@@ -15,5 +15,5 @@ trap limpar EXIT
 docker compose -f "$raiz/compose.yaml" up -d serverest --wait
 docker compose -f "$raiz/compose.yaml" --profile "$servico" run --rm "$servico"
 codigo=$?
-cat "$raiz/testes-performance/relatorios/summary.txt" 2>/dev/null || true
+cat "$raiz/testes-performance/relatorios/$perfil/summary.txt" 2>/dev/null || true
 exit "$codigo"

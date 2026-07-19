@@ -16,7 +16,7 @@ try {
   docker compose -f "$raiz\compose.yaml" up -d serverest --wait
   docker compose -f "$raiz\compose.yaml" --profile "k6-$Perfil" run --rm $servico
   $codigo = $LASTEXITCODE
-  Get-Content "$raiz\testes-performance\relatorios\summary.txt" -ErrorAction SilentlyContinue
+  Get-Content "$diretorioRelatorios\summary.txt" -ErrorAction SilentlyContinue
   exit $codigo
 } finally {
   docker compose -f "$raiz\compose.yaml" down --remove-orphans
