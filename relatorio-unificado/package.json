@@ -7,7 +7,8 @@
     "converter-k6": "node scripts/converter-k6.mjs",
     "gerar": "allure generate temporario --output saida",
     "preparar-publicacao": "node scripts/preparar-publicacao.mjs",
-    "validar-portal": "node scripts/validar-portal.mjs"
+    "validar-portal": "node scripts/validar-portal.mjs",
+    "validar-publicacao": "node scripts/validar-publicacao.mjs"
   },
   "keywords": [],
   "author": "",
