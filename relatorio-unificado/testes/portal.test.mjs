@@ -73,7 +73,7 @@ test('classifica falha de API como bloqueio de qualidade', () => {
     Mobile: { total: 1, passed: 1, failed: 0 },
     Performance: { total: 1, passed: 1, failed: 0 },
   };
-  const resumo = { stats: { total: 6, passed: 5, failed: 1 }, status: 'failed' };
+  const resumo = { stats: { total: 6, passed: 5, failed: 0, broken: 1 }, status: 'failed' };
   const { portal, html } = montarPortal({ resumo, modulos, acessibilidadeAtual: semAcessibilidade });
 
   assert.equal(portal.status.texto, 'BLOQUEADO POR FALHAS DE QUALIDADE');

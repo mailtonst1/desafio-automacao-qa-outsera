@@ -22,6 +22,7 @@ export function validarPortal({
   });
 
   assert.deepEqual(portal.resumo, esperado.resumo, 'Resumo do portal divergente do summary.json.');
+  assert.deepEqual(portal.consolidado, esperado.consolidado, 'Consolidado do portal divergente dos resultados Allure.');
   assert.deepEqual(portal.modulos, esperado.modulos, 'Metricas dos modulos divergentes dos resultados Allure.');
   assert.deepEqual(portal.funcionais, esperado.funcionais, 'Metricas funcionais divergentes dos resultados Allure.');
   assert.deepEqual(portal.acessibilidade, esperado.acessibilidade, 'Resumo de acessibilidade divergente dos resultados Allure.');
@@ -31,9 +32,9 @@ export function validarPortal({
 
   assert.ok(html.includes(`data-status="${esperado.status.codigo}"`), 'Status estruturado ausente no HTML.');
   assert.ok(html.includes(`>${esperado.status.texto}<`), 'Texto de status divergente no HTML.');
-  assert.ok(html.includes(`data-summary-total="${resumo.stats.total}"`), 'Total consolidado divergente no HTML.');
-  assert.ok(html.includes(`data-summary-passed="${resumo.stats.passed}"`), 'Total aprovado divergente no HTML.');
-  assert.ok(html.includes(`data-summary-failed="${resumo.stats.failed}"`), 'Total reprovado divergente no HTML.');
+  assert.ok(html.includes(`data-summary-total="${esperado.consolidado.total}"`), 'Total consolidado divergente no HTML.');
+  assert.ok(html.includes(`data-summary-passed="${esperado.consolidado.passed}"`), 'Total aprovado divergente no HTML.');
+  assert.ok(html.includes(`data-summary-failed="${esperado.consolidado.failed}"`), 'Total reprovado divergente no HTML.');
 
   for (const nome of nomesDosModulos) {
     assert.ok(html.includes(atributosDoModulo(nome, modulosEsperados[nome])), `Metricas de ${nome} divergentes no HTML.`);
