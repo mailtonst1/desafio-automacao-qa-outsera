@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 
 const linksObrigatorios = [
-  'allure/index.html',
-  'performance/fumaca/index.html',
-  'performance/carga/index.html',
+  './allure/',
+  './performance/fumaca/',
+  './performance/carga/',
 ];
 
 export function validarConteudoPublicado({ html, portalPublicado, portalEsperado }) {
@@ -19,6 +19,13 @@ export function validarConteudoPublicado({ html, portalPublicado, portalEsperado
   for (const link of linksObrigatorios) {
     assert.ok(html.includes(`href="${link}"`), `Link público obrigatório ausente: ${link}`);
   }
+
+  assert.ok(
+    html.includes(`href="${portalEsperado.rastreabilidade.urlRepositorio}"`),
+    'Link público do repositório ausente.',
+  );
+  assert.ok(html.includes('href="https://mailtonascimento.com"'), 'Assinatura profissional ausente.');
+  assert.ok(!/href=["']\s*["']/i.test(html), 'Página pública contém link vazio.');
 }
 
 export function normalizarUrlBase(url) {
