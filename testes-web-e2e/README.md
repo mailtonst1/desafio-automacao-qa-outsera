@@ -16,8 +16,9 @@ npm run lint
 npm run verificar:cypress
 npm run cy:open
 npm run smoke
+npm run funcional
+npm run acessibilidade
 npm run regressao
-npx cypress run --env tags=@acessibilidade
 npm run relatorio
 ```
 
@@ -27,7 +28,7 @@ Os testes de acessibilidade executam axe nas quatro paginas criticas reais e blo
 
 ## Evidencias e CI
 
-Cypress grava screenshots, videos e `allure-results`; cada cenario tambem anexa screenshot de viewport e URL final ao Allure. Quando o axe encontra violacoes, o Allure recebe um JSON com regra, impacto, referencia, seletor, HTML e motivo por elemento. O job `testes-web` executa `npm ci`, instala o Cypress, aplica `npm run typecheck` e `npm run lint`, roda `npm run regressao` e publica os tres conjuntos como artifact.
+Cypress grava screenshots, videos e `allure-results`; cada cenario tambem anexa screenshot de viewport e URL final ao Allure. Quando o axe encontra violacoes, o Allure recebe um JSON com regra, impacto, referencia, seletor, HTML e motivo por elemento. O job `web-funcional` aplica `npm ci`, verifica o Cypress, executa typecheck, lint e os sete cenarios funcionais. O job `web-acessibilidade` usa instalacao independente e executa somente `@acessibilidade`. Ambos exigem resultados Allure; screenshots e videos sao publicados separadamente como evidencias opcionais.
 
 ## Limites e diagnostico
 

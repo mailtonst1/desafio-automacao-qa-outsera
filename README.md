@@ -42,7 +42,7 @@ Em Linux/macOS use `./scripts/doctor.sh`, `./scripts/bootstrap.sh` e as variante
 
 ## Pipeline e documentacao
 
-Push, pull request e `workflow_dispatch` acionam a pipeline. API, Web, Mobile, fumaça e carga executam em paralelo; o quality gate exige todos os jobs e o relatório unificado aprovados. Logs e artifacts ficam em [GitHub Actions](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions). O Pages e atualizado em push para `main`.
+Push, pull request e `workflow_dispatch` acionam a pipeline. API, Web funcional, Web acessibilidade, Mobile, fumaça e carga executam em paralelo. Gates separados mostram qualidade funcional, acessibilidade e decisão final; o Pages publica também o portal bloqueado e uma validação pós-deploy confere a URL pública. Logs, resumo executivo e artifacts ficam em [GitHub Actions](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions).
 
 - [Documentacao dos testes de API](testes-api/README.md)
 - [Documentacao dos testes Web E2E](testes-web-e2e/README.md)
@@ -59,7 +59,7 @@ As suites API, Web e Performance foram executadas a partir de clone limpo, sem a
 | Modulo | Escopo | Comando principal |
 | --- | --- | --- |
 | `testes-api` | ServeRest: autenticacao, usuarios, produtos, carrinhos e contratos | `./mvnw.cmd test` |
-| `testes-web-e2e` | Automation Exercise: autenticacao, checkout e acessibilidade | `npm run typecheck && npm run lint && npm run regressao` |
+| `testes-web-e2e` | Automation Exercise: autenticacao, checkout e acessibilidade | `npm run funcional` / `npm run acessibilidade` |
 | `testes-mobile` | My Demo App Android 2.2.0: catalogo, login, produto e checkout | `./mvnw.cmd test` |
 | `testes-performance` | k6 contra ServeRest local: fumaca e carga | `scripts/executar-performance.ps1` |
 | `relatorio-unificado` | Allure consolidado e resumo de performance | `npm run gerar` |
@@ -83,7 +83,7 @@ O APK e baixado da release oficial e validado por SHA-256; nao e versionado. Dad
 
 Cada chamada API anexa requisicao, resposta e metadados ao Allure, com `Authorization`, `authorization` e `password` mascarados. Web anexa screenshot de viewport e URL final por cenario; falhas de acessibilidade tambem recebem um JSON detalhado no Allure, e os screenshots/videos do Cypress sao preservados. Mobile anexa screenshot final e dados de dispositivo por teste e, em falha, page source, Appium log e logcat.
 
-O workflow [Qualidade](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions/workflows/qualidade.yml) publica artifacts de cada modulo com `if: always()`. O Pages contem a entrada do Allure e os relatorios k6 de fumaca e carga.
+O workflow [Qualidade](https://github.com/mailtonst1/desafio-automacao-qa-outsera/actions/workflows/qualidade.yml) separa resultados obrigatorios de evidencias opcionais e publica ambos com `if: always()`. O Pages contem a entrada do Allure e os relatorios k6 de fumaca e carga; após o deploy, a pipeline valida status, links, metadados e coerência do manifesto público.
 
 ## Seguranca
 
